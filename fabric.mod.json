@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "yourmod",
+  "version": "1.0.0",
+  "name": "Your Mod Name",
+  "description": "A brief description of your mod",
+  "authors": [
+    "Your Name"
+  ],
+  "license": "MIT",
+  "icon": "assets/yourmod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.YourMod"
+    ]
+  },
+  "depends": {
+    "fabric": "*"
+  }
+}

@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'architectury-plugin' version '3.4.155'
+    id 'maven-publish'
+    id 'fabric-loom' version '1.8.3'
+}
+
+group = 'com.example'
+version = '1.0.0'
+archivesBaseName = 'my-mod'
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://maven.architectury.dev/' }
+    maven { url 'https://maven.fabricmc.net/' }
+}
+
+dependencies {
+    // Add your dependencies here
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
