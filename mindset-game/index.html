@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inner Game — The Mindset Gym</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --card: #171c24;
+    --card2: #1e2530;
+    --text: #e8ecf1;
+    --muted: #9aa5b1;
+    --grit: #e05d4b;
+    --focus: #f2b544;
+    --clarity: #4bb3e0;
+    --joy: #e977b0;
+    --presence: #7bcf8e;
+    --accent: #8b7cf6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: radial-gradient(1200px 800px at 70% -10%, #1b2333 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 48px;
+  }
+  .app { width: 100%; max-width: 720px; }
+  h1 { font-size: 2rem; letter-spacing: 0.5px; }
+  h1 .spark { color: var(--accent); }
+  .tagline { color: var(--muted); margin: 6px 0 20px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid #232c3a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+
+  /* Coaches panel */
+  .coaches { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 16px 0; }
+  .coach {
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    border-top: 3px solid var(--c, var(--accent));
+  }
+  .coach .avatar { font-size: 1.6rem; }
+  .coach .name { font-weight: 600; font-size: 0.85rem; margin-top: 4px; }
+  .coach .stat { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .coach .creed { font-size: 0.75rem; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+
+  /* Stat bars */
+  .stats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .statrow { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+  .statrow .label { width: 82px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .bar { flex: 1; height: 10px; background: #10151d; border-radius: 6px; overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+  .statrow .val { width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .roundmeta { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.85rem; margin-bottom: 10px; }
+  .scenario-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; }
+  .scenario-body { color: #c7cfd9; line-height: 1.55; margin-bottom: 18px; }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  button.choice {
+    background: var(--card2);
+    border: 1px solid #2a3444;
+    color: var(--text);
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  button.choice:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  /* Feedback */
+  .feedback { border-left: 4px solid var(--c, var(--accent)); }
+  .feedback .coachline { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .feedback .coachline .avatar { font-size: 1.5rem; }
+  .feedback .coachline .who { font-weight: 600; }
+  .feedback .coachline .role { color: var(--muted); font-size: 0.8rem; }
+  .feedback .quote { color: #d5dce4; line-height: 1.6; font-style: italic; }
+  .deltas { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .delta {
+    font-size: 0.78rem; padding: 4px 10px; border-radius: 999px;
+    background: #10151d; border: 1px solid #2a3444;
+  }
+  .delta.up { color: #8de0a0; }
+  .delta.down { color: #f08d80; }
+
+  button.primary {
+    background: var(--accent);
+    border: none; color: #fff;
+    padding: 13px 26px; border-radius: 12px;
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    margin-top: 18px;
+    transition: filter 0.15s;
+  }
+  button.primary:hover { filter: brightness(1.12); }
+
+  .archetype { font-size: 1.4rem; font-weight: 700; margin: 6px 0; }
+  .quest { background: var(--card2); border-radius: 12px; padding: 16px; margin-top: 14px; line-height: 1.5; }
+  .quest .qtitle { font-weight: 600; margin-bottom: 4px; color: var(--accent); }
+  .streak { color: var(--muted); font-size: 0.85rem; margin-top: 14px; }
+
+  footer { color: #5b6673; font-size: 0.72rem; line-height: 1.5; margin-top: 24px; text-align: center; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>INNER GAME <span class="spark">◆</span></h1>
+  <p class="tagline">The Mindset Gym — ten rounds of real life. Train the way you respond.</p>
+
+  <!-- ============ INTRO ============ -->
+  <div id="screen-intro">
+    <div class="card">
+      <p style="line-height:1.6; color:#c7cfd9;">
+        Life doesn't get easier — <strong>you get better at meeting it</strong>.
+        In each round you'll face a situation you've probably lived through this week.
+        Every choice trains (or erodes) five mindset muscles. Your coaches will tell you
+        exactly why. There are no perfect runs — only honest ones.
+      </p>
+      <div class="coaches" id="coaches"></div>
+      <button class="primary" id="btn-start">Start today's session →</button>
+      <div class="streak" id="streak-intro"></div>
+    </div>
+  </div>
+
+  <!-- ============ GAME ============ -->
+  <div id="screen-game" class="hidden">
+    <div class="stats" id="stats"></div>
+    <div class="card" id="scenario-card">
+      <div class="roundmeta"><span id="round-label"></span><span id="score-label"></span></div>
+      <div class="scenario-title" id="scenario-title"></div>
+      <div class="scenario-body" id="scenario-body"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+    <div class="card feedback hidden" id="feedback-card">
+      <div class="coachline">
+        <span class="avatar" id="fb-avatar"></span>
+        <div><div class="who" id="fb-who"></div><div class="role" id="fb-role"></div></div>
+      </div>
+      <div class="quote" id="fb-quote"></div>
+      <div class="deltas" id="fb-deltas"></div>
+      <button class="primary" id="btn-next">Next round →</button>
+    </div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div id="screen-end" class="hidden">
+    <div class="card">
+      <div class="roundmeta"><span>Session complete</span><span id="final-score"></span></div>
+      <div class="archetype" id="archetype"></div>
+      <p style="color:#c7cfd9; line-height:1.6;" id="archetype-desc"></p>
+      <div class="stats" id="final-stats" style="margin-top:16px;"></div>
+      <div class="quest">
+        <div class="qtitle">⚔ Today's real-world quest</div>
+        <div id="quest-text"></div>
+      </div>
+      <div class="streak" id="streak-end"></div>
+      <button class="primary" id="btn-restart">Train again ↺</button>
+    </div>
+  </div>
+
+  <footer>
+    A fan-made training game inspired by the publicly shared ideas of Mark Manson, Ali Abdaal,
+    Dr. Alok Kanojia (HealthyGamerGG), Alysa Liu, and Charisma on Command.
+    Coach lines are paraphrased principles, not real quotes. Not affiliated with or endorsed by any of them.
+    Not a substitute for professional mental-health care.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------- Coaches ---------------- */
+const COACHES = {
+  manson: {
+    name: "Mark", avatar: "🥃", stat: "grit", color: "var(--grit)",
+    role: "Coach of Grit — values & chosen struggle",
+    creed: "You don't get a pain-free life. You get to pick which pain is worth it."
+  },
+  abdaal: {
+    name: "Ali", avatar: "⚡", stat: "focus", color: "var(--focus)",
+    role: "Coach of Focus — feel-good productivity",
+    creed: "Discipline is overrated. Make it fun, make it easy, make it a system."
+  },
+  drk: {
+    name: "Dr. K", avatar: "🧠", stat: "clarity", color: "var(--clarity)",
+    role: "Coach of Clarity — emotional awareness",
+    creed: "An emotion you refuse to feel doesn't disappear. It runs your life from the shadows."
+  },
+  liu: {
+    name: "Alysa", avatar: "⛸️", stat: "joy", color: "var(--joy)",
+    role: "Coach of Joy — process over outcome",
+    creed: "I skate best when I stop protecting a result and start loving the attempt."
+  },
+  charisma: {
+    name: "Charlie", avatar: "🎙️", stat: "presence", color: "var(--presence)",
+    role: "Coach of Presence — social courage",
+    creed: "Confidence isn't knowing they'll like you. It's knowing you'll be fine either way."
+  }
+};
+
+const STATS = {
+  grit:     { label: "Grit",     color: "var(--grit)" },
+  focus:    { label: "Focus",    color: "var(--focus)" },
+  clarity:  { label: "Clarity",  color: "var(--clarity)" },
+  joy:      { label: "Joy",      color: "var(--joy)" },
+  presence: { label: "Presence", color: "var(--presence)" }
+};
+
+/* ---------------- Scenarios ----------------
+   d = stat deltas, coach = who responds, fb = their feedback */
+const SCENARIOS = [
+  {
+    title: "The 6 AM Alarm",
+    body: "Your alarm goes off. You planned to work out before work. The bed is warm, the gym is cold, and nobody would ever know if you skipped.",
+    choices: [
+      { text: "Snooze. You'll 'go twice tomorrow.'",
+        d: { grit: -6, focus: -3 }, coach: "manson",
+        fb: "Tomorrow-you is a myth you invented so today-you can hide. You didn't lose a workout — you voted for the person you don't want to be. Small votes add up." },
+      { text: "Get up, but negotiate down to a 20-minute session.",
+        d: { grit: 5, focus: 4, joy: 2 }, coach: "abdaal",
+        fb: "Love it. The goal was never the perfect workout — it's keeping the promise cheap enough that you always keep it. A 20-minute session you actually do beats the 90-minute one you dread." },
+      { text: "Get up and do the full session, resenting every second.",
+        d: { grit: 6, joy: -3 }, coach: "liu",
+        fb: "You showed up — that counts. But watch the resentment. If training always feels like punishment, you'll quit the day motivation dips. Find one part of it you can actually enjoy, or this won't last." }
+    ]
+  },
+  {
+    title: "Public Criticism",
+    body: "In a team meeting, your manager picks apart your work in front of everyone. Some of it is fair. Some of it isn't. Your face is hot.",
+    choices: [
+      { text: "Defend every point on the spot, voice rising.",
+        d: { presence: -4, clarity: -4 }, coach: "drk",
+        fb: "Notice what happened: shame arrived, and you outsourced the job of making it go away to winning an argument. The feeling was the signal. Name it first — 'I feel humiliated' — then decide. Reacting isn't deciding." },
+      { text: "Say 'Some of this is fair — let me take it in and follow up on the rest.'",
+        d: { grit: 5, presence: 6, clarity: 3 }, coach: "charisma",
+        fb: "That's high status, and everyone in the room felt it. You didn't grovel and you didn't fight — you stayed the calmest person there. The person who doesn't need the moment to go their way owns the moment." },
+      { text: "Say nothing, then quietly stew about it all day.",
+        d: { clarity: -5, grit: -3 }, coach: "manson",
+        fb: "You avoided one uncomfortable minute and bought eight hours of misery. That's a terrible trade. Fault and responsibility aren't the same thing — maybe it wasn't all your fault, but how you carry it is 100% yours." }
+    ]
+  },
+  {
+    title: "The Cancelled Plans",
+    body: "Your friend cancels on you an hour before dinner — second time this month. A sour feeling settles in your chest.",
+    choices: [
+      { text: "Reply 'no worries!!' and pretend it doesn't sting.",
+        d: { clarity: -6, presence: -2 }, coach: "drk",
+        fb: "'No worries' when there are worries is how resentment gets built, brick by brick. You don't have to explode — but at least admit to yourself: 'this hurt.' Suppressed isn't the same as processed." },
+      { text: "Sit with the feeling for a minute, then tell them honestly it's disappointing and ask what's going on with them.",
+        d: { clarity: 7, presence: 4, grit: 2 }, coach: "drk",
+        fb: "This is the whole skill: feel it, name it, then act from choice instead of from the feeling. And you asked about them — because maybe this is about their life, not your worth. That's clarity." },
+      { text: "Decide they're a bad friend and start withdrawing.",
+        d: { clarity: -4, joy: -4 }, coach: "charisma",
+        fb: "You wrote a whole story off one data point and cast yourself as the victim in it. Assume good intent until proven otherwise — it's not naive, it's the only stance that keeps friendships alive long enough to be tested." }
+    ]
+  },
+  {
+    title: "Twenty Free Minutes",
+    body: "A meeting ends early. Twenty unclaimed minutes appear in your day. Your phone is already in your hand.",
+    choices: [
+      { text: "Scroll. It's just twenty minutes.",
+        d: { focus: -5, clarity: -3 }, coach: "drk",
+        fb: "It's never about the twenty minutes. Each scroll teaches your brain that boredom is an emergency requiring immediate dopamine. You're not relaxing — you're training an intolerance for your own mind." },
+      { text: "Walk outside with no phone, no podcast, nothing.",
+        d: { clarity: 6, joy: 4, focus: 2 }, coach: "abdaal",
+        fb: "Underrated power move. Half my best ideas arrive on phoneless walks — boredom is where your brain finally gets to talk to you. You just did maintenance on the machine that does everything else." },
+      { text: "Knock out the small task you've been putting off.",
+        d: { focus: 6, grit: 3 }, coach: "abdaal",
+        fb: "The two-minute rule strikes again. That task was costing you more in background anxiety than in actual effort. Closing open loops is the cheapest energy upgrade there is." }
+    ]
+  },
+  {
+    title: "The Room Full of Strangers",
+    body: "You're at an event where you know exactly one person, and they just left to get a drink. Everyone else is mid-conversation.",
+    choices: [
+      { text: "Take out your phone and look busy until they return.",
+        d: { presence: -6, joy: -2 }, coach: "charisma",
+        fb: "The phone shield fools nobody, least of all you. Here's the reframe: nobody in this room is judging you, because they're all worried about being judged. The first person to be warmly curious wins the room." },
+      { text: "Join the nearest group and just listen with genuine interest until there's a natural opening.",
+        d: { presence: 6, clarity: 2, joy: 2 }, coach: "charisma",
+        fb: "That's the move. You don't need a brilliant opener — you need to be visibly enjoying the conversation you joined. Enthusiasm and attention are the whole first impression. Words are maybe 20% of it." },
+      { text: "Force yourself to give a big performance — loud jokes, big energy that isn't yours.",
+        d: { presence: 1, clarity: -4, joy: -3 }, coach: "drk",
+        fb: "You survived, but check the cost: you just taught yourself that the real you isn't enough and a mask is required. Masks are exhausting, and people can smell them. Nervous-but-genuine beats polished-but-fake." }
+    ]
+  },
+  {
+    title: "The Overwhelming Project",
+    body: "The big project is due in two weeks. Every time you think about it, it feels like a wall. You've been 'about to start' for four days.",
+    choices: [
+      { text: "Wait until you feel motivated. It'll come.",
+        d: { focus: -6, grit: -3 }, coach: "abdaal",
+        fb: "Bad news: motivation follows action, not the other way around. You've got the equation backwards, so you're waiting for a train that departs only after you board. Start ugly, start tiny — feeling like it comes later." },
+      { text: "Break it into pieces and commit to one laughably small first step today.",
+        d: { focus: 7, grit: 3, joy: 2 }, coach: "abdaal",
+        fb: "The wall was never the project — it was the vagueness. 'Do the project' terrifies; 'open a doc and write five bullet points' doesn't. Momentum is a systems problem, and you just solved it." },
+      { text: "Panic-plan: build an elaborate color-coded schedule instead of doing anything.",
+        d: { focus: -2, clarity: -3 }, coach: "manson",
+        fb: "Productive-looking avoidance is still avoidance — it's just avoidance with a spreadsheet. Planning feels like progress precisely because it carries none of the risk of actually doing the thing badly. Do the thing badly." }
+    ]
+  },
+  {
+    title: "The Result You Didn't Want",
+    body: "You gave it a real shot — the competition, the application, the audition — and you didn't make it. The rejection email is open on your screen.",
+    choices: [
+      { text: "Decide this proves you were never cut out for it.",
+        d: { grit: -6, joy: -5 }, coach: "liu",
+        fb: "I stepped away from my sport at the top and came back for one reason: I finally separated 'I lost' from 'I'm a loser.' A result is information about one attempt. It was never a verdict on you." },
+      { text: "Let it hurt today, then extract exactly one lesson and schedule the next attempt.",
+        d: { grit: 7, clarity: 4, joy: 2 }, coach: "liu",
+        fb: "Yes — in that order. Feel it first; skipping the sad part just stores it for later. Then one lesson, not twenty, and back to the process. The people who make it aren't tougher than you. They just kept entering." },
+      { text: "Immediately sign up for three more things so you don't have to feel this one.",
+        d: { grit: 2, clarity: -5 }, coach: "drk",
+        fb: "That's not resilience, that's anesthesia with extra steps. Grief you outrun tends to wait for you at the next failure, with interest. Thirty minutes of actually feeling disappointed will buy you years of not fearing it." }
+    ]
+  },
+  {
+    title: "The Highlight Reel",
+    body: "You open social media and the first post is someone your age announcing the exact success you've been grinding toward. Your stomach drops.",
+    choices: [
+      { text: "Spend the next hour deep-diving their profile, measuring your life against theirs.",
+        d: { clarity: -5, joy: -5, focus: -3 }, coach: "manson",
+        fb: "Comparison is choosing to run someone else's race and then feeling bad about your time. You will always lose a game where the metric is 'their highlight reel versus my Tuesday.' Pick your metric or the feed picks it for you." },
+      { text: "Notice the envy, and use it as data: it's pointing at something you genuinely want.",
+        d: { clarity: 6, grit: 3, focus: 2 }, coach: "drk",
+        fb: "Envy is one of the most honest emotions you have — it can't be faked and it always points at a real desire. Don't shoot the messenger. Ask what it's pointing to, then go work on that instead of refreshing." },
+      { text: "Comment congrats, close the app, and go do one rep of your own thing.",
+        d: { joy: 5, focus: 4, presence: 2 }, coach: "liu",
+        fb: "Celebrating a rival and getting back to practice — that's the athlete's move. Their win took nothing from you; the lane next to yours being fast doesn't slow your lane down. Back to the process." }
+    ]
+  },
+  {
+    title: "The Raise Conversation",
+    body: "You've been underpaid for a year and you know it. Your manager's calendar has an open slot tomorrow. Your cursor hovers over it.",
+    choices: [
+      { text: "Don't book it. The timing isn't right — maybe next quarter.",
+        d: { presence: -5, grit: -4 }, coach: "manson",
+        fb: "'The timing isn't right' is what fear sounds like when it's trying to sound wise. There will never be a comfortable moment to ask to be valued. You're not avoiding the conversation — you're avoiding finding out." },
+      { text: "Book it, prepare three concrete results you've delivered, and make the ask plainly.",
+        d: { presence: 7, grit: 4, focus: 2 }, coach: "charisma",
+        fb: "Ask like it's a reasonable request between two professionals — because it is. No apologizing for asking, no fifteen-minute preamble. State the value, make the ask, then stop talking. Silence after an ask is your friend." },
+      { text: "Book it, but open with 'sorry, this is probably a bad time…'",
+        d: { presence: -2, grit: 2 }, coach: "charisma",
+        fb: "You showed up — good. But you undercut yourself in the first sentence. When you apologize for existing, you hand the other person the frame that your ask is a burden. Courage counts double when it stands up straight." }
+    ]
+  },
+  {
+    title: "One More Episode",
+    body: "It's 12:40 AM. You have work tomorrow. The next episode auto-plays in 5… 4… 3…",
+    choices: [
+      { text: "Watch it. And maybe the one after. Sleep is for the weak.",
+        d: { focus: -6, clarity: -3, joy: -2 }, coach: "abdaal",
+        fb: "This is 'revenge bedtime procrastination' — stealing tomorrow's energy to feel free tonight. But tired-you is a worse version of you at everything you care about. Sleep isn't the tax on a good life; it's the funding." },
+      { text: "Close it, phone outside the bedroom, lights out.",
+        d: { focus: 6, grit: 4 }, coach: "abdaal",
+        fb: "The environment did the heavy lifting — that's the trick. Willpower at 12:40 AM is a myth, but a phone in another room is physics. Design the system so the lazy choice is the right one." },
+      { text: "Ask yourself why you don't want the day to end, then wind down properly.",
+        d: { clarity: 7, focus: 3 }, coach: "drk",
+        fb: "That question is the real work. Late-night screens are usually not about the show — they're about not wanting to face tomorrow, or not having had a single hour that was truly yours. Solve that, and the autoplay loses its power." }
+    ]
+  },
+  {
+    title: "Week One of the New Skill",
+    body: "You started learning something new. You are, objectively, terrible at it. A voice suggests that talented people don't start this badly.",
+    choices: [
+      { text: "Quit quietly. You can always say you were too busy.",
+        d: { grit: -6, joy: -4 }, coach: "liu",
+        fb: "Everyone you admire was embarrassing at this stage — you just never saw their week one. Quitting because you're bad at the beginning is like leaving a movie because it started with opening credits." },
+      { text: "Keep going, and deliberately laugh at your own worst attempts.",
+        d: { joy: 7, grit: 4, clarity: 2 }, coach: "liu",
+        fb: "That's it — that's the unlock. Play protects persistence. The day I started laughing at my falls instead of fearing them was the day I started landing things. You can't learn and look cool at the same time. Choose learning." },
+      { text: "Keep going, but only practice in secret so nobody sees you struggle.",
+        d: { grit: 3, presence: -4 }, coach: "charisma",
+        fb: "Half credit — you're still in the game. But hiding the struggle feeds the belief that being seen learning is dangerous. Being bad at something in front of people, cheerfully, is one of the most magnetic things a human can do." }
+    ]
+  },
+  {
+    title: "The Family Argument",
+    body: "A family member says the thing they always say — the one that gets under your skin like nothing else. Everyone at the table goes quiet.",
+    choices: [
+      { text: "Fire back with the counter-jab you've rehearsed for years.",
+        d: { clarity: -5, presence: -3 }, coach: "drk",
+        fb: "You didn't respond to what they said tonight — you responded to twenty years of it, and they did too. That's two nervous systems arguing while two people watch. Someone has to be the first to actually be present. It can be you." },
+      { text: "Breathe once, and say calmly: 'That one lands hard on me. Can we not?'",
+        d: { clarity: 6, presence: 5, grit: 3 }, coach: "drk",
+        fb: "A boundary, delivered without a blade in it. You named the impact without attacking the person — which gives them a real chance to change, and gives you your dignity either way. That pause before speaking was the whole victory." },
+      { text: "Go silent and leave early, letting it ruin the night.",
+        d: { clarity: -3, presence: -4 }, coach: "manson",
+        fb: "Leaving isn't the problem — leaving instead of ever saying anything is. If a boundary only exists in your head, it isn't a boundary; it's a grudge with a floor plan. Say the quiet thing once, out loud, kindly." }
+    ]
+  },
+  {
+    title: "Twenty Items, Zero Progress",
+    body: "Your to-do list has twenty items. You've been staring at it for ten minutes, achieving a bold total of nothing.",
+    choices: [
+      { text: "Reorganize the list into a better app. Again.",
+        d: { focus: -4 }, coach: "abdaal",
+        fb: "Ah, the productivity enthusiast's classic: optimizing the system instead of using it. A new app is a treat, not a strategy. The list was never the bottleneck — the missing decision was. Pick one thing. The rest can sulk." },
+      { text: "Circle the single item that makes today a win, and start it for just ten minutes.",
+        d: { focus: 7, clarity: 3, grit: 2 }, coach: "abdaal",
+        fb: "One priority is a decision; twenty priorities is a panic attack in list form. And the ten-minute trick works because starting is the expensive part — the brain hates open loops and will usually keep going once it's in." },
+      { text: "Do the five easiest items to feel productive, leaving the one that matters.",
+        d: { focus: 1, grit: -4 }, coach: "manson",
+        fb: "You just spent your best hours buying the feeling of progress instead of the substance of it. The hard task is hard because it matters. Busywork is how ambitious people procrastinate with a clean conscience." }
+    ]
+  },
+  {
+    title: "The Deflected Compliment",
+    body: "Someone tells you, sincerely: 'You're really good at this.' Your mouth is already halfway through 'oh no, not really, I just—'",
+    choices: [
+      { text: "Finish the deflection: 'It was nothing, honestly, anyone could do it.'",
+        d: { presence: -5, clarity: -2 }, coach: "charisma",
+        fb: "Deflecting feels humble but it's really a small rejection — of their judgment and of your own worth. You told a person who admired something about you that they were wrong. Practice the radical alternative: 'Thank you.' Full stop." },
+      { text: "Smile and say 'Thank you — I've worked hard on it.'",
+        d: { presence: 6, joy: 3, clarity: 2 }, coach: "charisma",
+        fb: "See how the world didn't end? Receiving a compliment gracefully honors the person who gave it and quietly informs your own brain that good things about you are allowed to be true. That's confidence being built in real time." },
+      { text: "Immediately return a bigger compliment to change the subject.",
+        d: { presence: -1, clarity: -3 }, coach: "drk",
+        fb: "Notice the reflex: praise came in, discomfort spiked, and you hot-potatoed the attention away in under a second. Ask yourself what's so unbearable about being seen positively. That question leads somewhere important." }
+    ]
+  },
+  {
+    title: "Successful and Empty",
+    body: "On paper, things are going well. But lately every day feels like a checklist you didn't write, and you can't remember the last time you were excited.",
+    choices: [
+      { text: "Push harder. Feelings are inefficient. More output will fix it.",
+        d: { focus: 2, joy: -6, clarity: -4 }, coach: "liu",
+        fb: "I've lived this one — winning everything and feeling nothing. More gold doesn't fix a golden cage. When I walked away and came back on my own terms, the joy returned, and weirdly, so did the results. Burnout isn't cured by acceleration." },
+      { text: "Take an honest audit: which parts of this life did you choose, and which did you inherit?",
+        d: { clarity: 7, grit: 3, joy: 3 }, coach: "manson",
+        fb: "The most important question is the one almost nobody asks: not 'what do I want?' but 'whose values am I running?' Half of people's misery is winning games they never actually chose to play. Audit ruthlessly. Re-choose or release." },
+      { text: "Schedule one thing this week purely because it sounds fun, with zero productive value.",
+        d: { joy: 6, clarity: 3, focus: 2 }, coach: "abdaal",
+        fb: "Prescribed fun sounds silly until you realize play isn't the opposite of productivity — it's the fuel line. The moment work becomes the only room in your house, the whole house gets smaller. Go do the pointless thing. Doctor's orders." }
+    ]
+  }
+];
+
+/* ---------------- Archetypes & quests ---------------- */
+const ARCHETYPES = {
+  grit:     { name: "The Value-Driven", desc: "You choose your struggles instead of letting them choose you. Mark would raise a glass: you've learned that a meaningful life isn't a comfortable one — it's one where the discomfort is worth it." },
+  focus:    { name: "The Calm Architect", desc: "You don't wait for motivation — you build systems that make the right thing the easy thing. Ali's verdict: you've discovered that productivity done right feels less like grinding and more like gliding." },
+  clarity:  { name: "The Clear-Eyed", desc: "You feel your feelings instead of being run by them. Dr. K's verdict: you've built the rarest skill there is — the pause between what happens to you and what you do about it." },
+  joy:      { name: "The Playful Competitor", desc: "You've learned Alysa's secret: loving the process is not soft — it's the most durable competitive advantage there is. People who enjoy the climb outlast everyone who merely endures it." },
+  presence: { name: "The Quiet Magnet", desc: "You show up as yourself and let that be enough. Charlie's verdict: you've internalized that confidence isn't a performance — it's the absence of one." }
+};
+
+const QUESTS = {
+  grit:     "Tonight, write down one thing you've been avoiding because it's uncomfortable — then do the first five minutes of it before bed. Not the whole thing. Five minutes.",
+  focus:    "Pick tomorrow's single most important task tonight, and write it on paper where you'll see it at breakfast. One task. The list can wait.",
+  clarity:  "Next time a strong feeling hits today, pause and silently name it in one word — 'envy', 'hurt', 'dread' — before you do anything about it. Just the name. Watch what changes.",
+  joy:      "Do one thing today purely because it's fun, on purpose, without turning it into content, self-improvement, or a side hustle. Let it be gloriously pointless.",
+  presence: "Give one genuine compliment to someone today and — this is the hard part — if you receive one, answer only with 'thank you.' No deflecting, no returning fire."
+};
+
+/* ---------------- State ---------------- */
+const ROUNDS = 10;
+const START = 50;
+let stats, deck, round, lastDeltas;
+
+const $ = id => document.getElementById(id);
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------------- Rendering ---------------- */
+function renderCoaches() {
+  $("coaches").innerHTML = Object.values(COACHES).map(c => `
+    <div class="coach" style="--c:${c.color}">
+      <div class="avatar">${c.avatar}</div>
+      <div class="name">${c.name}</div>
+      <div class="stat">${STATS[c.stat].label}</div>
+      <div class="creed">${c.creed}</div>
+    </div>`).join("");
+}
+
+function renderStats(el) {
+  el.innerHTML = Object.entries(STATS).map(([k, s]) => `
+    <div class="statrow">
+      <span class="label">${s.label}</span>
+      <div class="bar"><div class="fill" style="width:${stats[k]}%; background:${s.color}"></div></div>
+      <span class="val">${stats[k]}</span>
+    </div>`).join("");
+}
+
+function totalScore() {
+  return Object.values(stats).reduce((a, b) => a + b, 0);
+}
+
+function show(screen) {
+  ["screen-intro", "screen-game", "screen-end"].forEach(id =>
+    $(id).classList.toggle("hidden", id !== screen));
+}
+
+function renderRound() {
+  const sc = deck[round];
+  $("round-label").textContent = `Round ${round + 1} of ${ROUNDS}`;
+  $("score-label").textContent = `Mindset ${totalScore()}`;
+  $("scenario-title").textContent = sc.title;
+  $("scenario-body").textContent = sc.body;
+  $("choices").innerHTML = "";
+  shuffle(sc.choices).forEach(choice => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = choice.text;
+    btn.onclick = () => pick(choice);
+    $("choices").appendChild(btn);
+  });
+  $("feedback-card").classList.add("hidden");
+  $("scenario-card").classList.remove("hidden");
+  renderStats($("stats"));
+}
+
+function pick(choice) {
+  lastDeltas = choice.d;
+  for (const [k, v] of Object.entries(choice.d)) {
+    stats[k] = Math.max(0, Math.min(100, stats[k] + v));
+  }
+  const c = COACHES[choice.coach];
+  $("fb-avatar").textContent = c.avatar;
+  $("fb-who").textContent = c.name;
+  $("fb-role").textContent = c.role;
+  $("fb-quote").textContent = "“" + choice.fb + "”";
+  $("fb-deltas").innerHTML = Object.entries(choice.d).map(([k, v]) =>
+    `<span class="delta ${v >= 0 ? "up" : "down"}">${STATS[k].label} ${v >= 0 ? "+" : ""}${v}</span>`).join("");
+  $("feedback-card").style.setProperty("--c", c.color);
+  $("scenario-card").classList.add("hidden");
+  $("feedback-card").classList.remove("hidden");
+  renderStats($("stats"));
+}
+
+function endGame() {
+  const entries = Object.entries(stats);
+  const top = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const low = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const arch = ARCHETYPES[top[0]];
+  $("final-score").textContent = `Mindset ${totalScore()} / 500`;
+  $("archetype").textContent = arch.name;
+  $("archetype-desc").textContent = arch.desc;
+  $("quest-text").textContent =
+    `Your weakest muscle this run was ${STATS[low[0]].label}. ` + QUESTS[low[0]];
+  renderStats($("final-stats"));
+  updateStreak();
+  show("screen-end");
+}
+
+/* ---------------- Streak (localStorage) ---------------- */
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+function loadStreak() {
+  try { return JSON.parse(localStorage.getItem("innergame") || "{}"); }
+  catch { return {}; }
+}
+
+function updateStreak() {
+  const s = loadStreak();
+  const today = todayKey();
+  if (s.last !== today) {
+    const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    s.streak = (s.last === yest ? (s.streak || 0) : 0) + 1;
+    s.last = today;
+  }
+  s.best = Math.max(s.best || 0, totalScore());
+  localStorage.setItem("innergame", JSON.stringify(s));
+  $("streak-end").textContent =
+    `🔥 ${s.streak}-day training streak · Personal best mindset: ${s.best}`;
+}
+
+function renderIntroStreak() {
+  const s = loadStreak();
+  $("streak-intro").textContent = s.streak
+    ? `🔥 ${s.streak}-day streak · Personal best: ${s.best}`
+    : "First session — the streak starts today.";
+}
+
+/* ---------------- Flow ---------------- */
+function startGame() {
+  stats = { grit: START, focus: START, clarity: START, joy: START, presence: START };
+  deck = shuffle(SCENARIOS).slice(0, ROUNDS);
+  round = 0;
+  show("screen-game");
+  renderRound();
+}
+
+$("btn-start").onclick = startGame;
+$("btn-restart").onclick = startGame;
+$("btn-next").onclick = () => {
+  round++;
+  if (round >= ROUNDS) endGame();
+  else renderRound();
+};
+
+renderCoaches();
+renderIntroStreak();
+</script>
+</body>
+</html>
