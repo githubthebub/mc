@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Revenue Toolkit</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface-1:      #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --series-2:       #008300;
+    --series-3:       #e87ba4;
+    --series-4:       #eda100;
+    --series-5:       #1baf7a;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical:#d03b3b;
+    --delta-good:     #006300;
+    --accent:         #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface-1:      #1a1a19;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #008300;
+      --series-3:       #d55181;
+      --series-4:       #c98500;
+      --series-5:       #199e70;
+      --delta-good:     #0ca30c;
+      --accent:         #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface-1:      #1a1a19;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #008300;
+    --series-3:       #d55181;
+    --series-4:       #c98500;
+    --series-5:       #199e70;
+    --delta-good:     #0ca30c;
+    --accent:         #3987e5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 8px;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--text-secondary); font-size: 13px; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  nav.tabs {
+    display: flex; gap: 4px; padding: 8px 24px 0;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  nav.tabs button {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 8px 14px; font-size: 14px; color: var(--text-secondary);
+    cursor: pointer; font-family: inherit;
+  }
+  nav.tabs button.active {
+    color: var(--text-primary); border-bottom-color: var(--accent); font-weight: 600;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+  section.tab-panel { display: none; }
+  section.tab-panel.active { display: block; }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px; margin-bottom: 18px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 4px; }
+  .card .hint { color: var(--text-muted); font-size: 13px; margin: 0 0 12px; }
+
+  .tile-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .tile .label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tile .value { font-size: 28px; font-weight: 650; margin-top: 2px; }
+  .tile .note { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .tile .note.good { color: var(--delta-good); }
+
+  form.inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  label.field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-secondary); }
+  label.field input, label.field select {
+    font: inherit; font-size: 14px; color: var(--text-primary);
+    background: var(--page); border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 8px; min-width: 120px;
+  }
+  label.check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+  button.btn {
+    font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface-1);
+    color: var(--text-primary); cursor: pointer;
+  }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.btn.subtle { color: var(--text-secondary); }
+
+  table.data {
+    width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px;
+  }
+  table.data th {
+    text-align: left; font-size: 12px; color: var(--text-secondary);
+    border-bottom: 1px solid var(--baseline); padding: 6px 8px; font-weight: 600;
+  }
+  table.data td { padding: 7px 8px; border-bottom: 1px solid var(--grid); }
+  table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.data td .rm { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; }
+  table.data td .rm:hover { color: var(--status-critical); }
+
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: baseline; }
+
+  .flag { display: flex; gap: 9px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+  .flag:last-child { border-bottom: none; }
+  .flag .icon { font-size: 14px; line-height: 1.4; }
+  .flag .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .flag.good .tag { color: var(--delta-good); }
+  .flag.warning .tag { color: var(--text-primary); }
+  .flag.serious .tag { color: var(--text-primary); }
+  .flag.critical .tag { color: var(--status-critical); }
+  .flag .body { color: var(--text-secondary); }
+  .flag .body strong { color: var(--text-primary); }
+
+  /* Revenue mix stacked bar */
+  .mixbar { display: flex; height: 26px; margin: 14px 0 10px; }
+  .mixbar .seg {
+    height: 100%; min-width: 4px; cursor: default;
+  }
+  .mixbar .seg + .seg { margin-left: 2px; }
+  .mixbar .seg:first-child { border-radius: 4px 0 0 4px; }
+  .mixbar .seg:last-child { border-radius: 0 4px 4px 0; }
+  .mixbar .seg:only-child { border-radius: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--text-secondary); }
+  .legend .item strong { color: var(--text-primary); font-weight: 600; }
+
+  .chart-wrap { position: relative; margin-top: 12px; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; }
+  #tooltip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    padding: 6px 10px; font-size: 13px; color: var(--text-primary);
+    max-width: 260px;
+  }
+  #tooltip .t-label { color: var(--text-secondary); font-size: 12px; }
+
+  details.tableview { margin-top: 10px; }
+  details.tableview summary { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+
+  .rate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px; }
+  .rate-card { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .rate-card .kind { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rate-card .range { font-size: 24px; font-weight: 650; margin-top: 2px; }
+  .rate-card .basis { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+  ul.tips { margin: 8px 0 0; padding-left: 18px; color: var(--text-secondary); }
+  ul.tips li { margin-bottom: 6px; }
+  ul.tips li strong { color: var(--text-primary); }
+
+  footer { text-align: center; color: var(--text-muted); font-size: 12px; padding: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Creator Revenue Toolkit</h1>
+    <div class="sub">Earn more &middot; spend less &middot; grow — data stays in your browser</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn subtle" id="btn-sample">Load sample data</button>
+    <button class="btn subtle" id="btn-export">Export JSON</button>
+    <button class="btn subtle" id="btn-import">Import JSON</button>
+    <input type="file" id="import-file" accept="application/json" hidden>
+    <button class="btn subtle" id="btn-theme" title="Toggle light/dark">◐ Theme</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="rates">Sponsorship rates</button>
+  <button data-tab="streams">Revenue streams</button>
+  <button data-tab="expenses">Expenses</button>
+  <button data-tab="growth">Growth planner</button>
+</nav>
+
+<main>
+
+<!-- ============ DASHBOARD ============ -->
+<section class="tab-panel active" id="tab-dashboard">
+  <div class="tile-row" id="dash-tiles"></div>
+
+  <div class="card">
+    <h2>Revenue mix this month</h2>
+    <p class="hint">Top four streams shown individually; the rest fold into “Other”. A healthy business rarely depends on one stream for more than half its income.</p>
+    <div id="mix-empty" class="hint" style="display:none">No revenue streams yet — add them on the <em>Revenue streams</em> tab, or load sample data.</div>
+    <div class="mixbar" id="mixbar"></div>
+    <div class="legend" id="mix-legend"></div>
+    <details class="tableview"><summary>View data as table</summary>
+      <table class="data" id="mix-table"></table>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Recommendations</h2>
+    <p class="hint">Generated from your streams, expenses, and profile.</p>
+    <div id="dash-recs"></div>
+  </div>
+</section>
+
+<!-- ============ RATES ============ -->
+<section class="tab-panel" id="tab-rates">
+  <div class="card">
+    <h2>What should you charge sponsors?</h2>
+    <p class="hint">Rates are computed from your reach and engagement against 2025–26 industry CPM benchmarks. They are a starting point for negotiation — never a ceiling.</p>
+    <form class="inline" id="rate-form">
+      <label class="field">Platform
+        <select id="rate-platform"></select>
+      </label>
+      <label class="field"><span id="rate-reach-label">Average views per video</span>
+        <input type="number" id="rate-reach" min="0" step="100" placeholder="e.g. 25000">
+      </label>
+      <label class="field">Followers / subscribers
+        <input type="number" id="rate-followers" min="0" step="100" placeholder="e.g. 120000">
+      </label>
+      <label class="field">Engagement rate (%)
+        <input type="number" id="rate-engagement" min="0" max="100" step="0.1" placeholder="e.g. 4.5">
+      </label>
+    </form>
+    <form class="inline" style="margin-top:10px">
+      <label class="check"><input type="checkbox" id="addon-usage"> Paid usage rights (brand runs it as an ad) <span style="color:var(--text-muted)">+25%</span></label>
+      <label class="check"><input type="checkbox" id="addon-exclusivity"> Category exclusivity (30 days) <span style="color:var(--text-muted)">+20%</span></label>
+      <label class="check"><input type="checkbox" id="addon-rush"> Rush delivery (&lt;1 week) <span style="color:var(--text-muted)">+15%</span></label>
+    </form>
+    <div class="rate-grid" id="rate-results"></div>
+    <div id="rate-notes" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Negotiation checklist</h2>
+    <ul class="tips">
+      <li><strong>Quote the range, anchor high.</strong> Open at the top of your computed range; brands expect to negotiate down 10–20%.</li>
+      <li><strong>Charge separately for usage rights.</strong> A post on your channel and an ad the brand runs with your face are two different products.</li>
+      <li><strong>Bundle into packages.</strong> A 3-video series at a 10–15% discount locks in predictable revenue and beats three one-off negotiations.</li>
+      <li><strong>Ask for the brief’s budget first.</strong> “What budget did you have in mind for this campaign?” regularly surfaces numbers above your rate card.</li>
+      <li><strong>Never work for exposure alone.</strong> Gifted product can supplement — not replace — a fee once you have real reach.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STREAMS ============ -->
+<section class="tab-panel" id="tab-streams">
+  <div class="card">
+    <h2>Monthly revenue streams</h2>
+    <p class="hint">Track every source of income. The diversification score rewards spreading revenue across independent streams — an algorithm change or a lost sponsor then can’t sink the whole business.</p>
+    <form class="inline" id="stream-form">
+      <label class="field">Name
+        <input type="text" id="stream-name" placeholder="e.g. YouTube AdSense" required>
+      </label>
+      <label class="field">Category
+        <select id="stream-category"></select>
+      </label>
+      <label class="field">Monthly amount ($)
+        <input type="number" id="stream-amount" min="0" step="1" required placeholder="e.g. 1200">
+      </label>
+      <button class="btn primary" type="submit">Add stream</button>
+    </form>
+    <table class="data" id="stream-table"></table>
+  </div>
+  <div class="card">
+    <h2>Streams you don’t have yet</h2>
+    <p class="hint">Categories missing from your mix, ordered by typical effort-to-revenue payoff.</p>
+    <div id="stream-suggestions"></div>
+  </div>
+</section>
+
+<!-- ============ EXPENSES ============ -->
+<section class="tab-panel" id="tab-expenses">
+  <div class="card">
+    <h2>Monthly expenses</h2>
+    <p class="hint">Mark an expense “essential” if losing it would stop you publishing. Everything else is a candidate for the audit below.</p>
+    <form class="inline" id="expense-form">
+      <label class="field">Name
+        <input type="text" id="expense-name" placeholder="e.g. Adobe Creative Cloud" required>
+      </label>
+      <label class="field">Category
+        <select id="expense-category"></select>
+      </label>
+      <label class="field">Monthly cost ($)
+        <input type="number" id="expense-amount" min="0" step="1" required placeholder="e.g. 60">
+      </label>
+      <label class="check"><input type="checkbox" id="expense-essential"> Essential</label>
+      <button class="btn primary" type="submit">Add expense</button>
+    </form>
+    <table class="data" id="expense-table"></table>
+  </div>
+  <div class="card">
+    <h2>Cost audit</h2>
+    <div id="expense-audit"></div>
+  </div>
+</section>
+
+<!-- ============ GROWTH ============ -->
+<section class="tab-panel" id="tab-growth">
+  <div class="card">
+    <h2>12-month revenue projection</h2>
+    <p class="hint">Compound audience growth applied to your current revenue-per-1k-followers. Your revenue per 1k is derived from the streams and profile you entered (editable below).</p>
+    <form class="inline" id="growth-form">
+      <label class="field">Current audience
+        <input type="number" id="growth-audience" min="0" step="100">
+      </label>
+      <label class="field">Monthly audience growth (%)
+        <input type="number" id="growth-rate" min="-50" max="100" step="0.1" value="5">
+      </label>
+      <label class="field">Revenue per 1k audience ($/mo)
+        <input type="number" id="growth-rpk" min="0" step="0.5">
+      </label>
+    </form>
+    <div class="chart-wrap" id="growth-chart-wrap">
+      <svg id="growth-chart" viewBox="0 0 680 260" role="img" aria-label="Projected monthly revenue line chart"></svg>
+    </div>
+    <details class="tableview"><summary>View data as table</summary>
+      <table class="data" id="growth-table"></table>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Expansion playbook</h2>
+    <ul class="tips">
+      <li><strong>Repurpose before you produce.</strong> One long video becomes 3–5 shorts, a newsletter section, and a podcast segment. New platforms should start as distribution, not new production load.</li>
+      <li><strong>Own the relationship.</strong> An email list or community you control is the only audience an algorithm can’t take away. Push every platform toward it.</li>
+      <li><strong>Productize what people already ask you.</strong> The questions in your comments and DMs are a free market survey for your first digital product.</li>
+      <li><strong>Hire for your bottleneck, not your job title.</strong> The first hire is usually an editor — it converts your hours into more publishing volume, the input every revenue stream shares.</li>
+      <li><strong>Raise prices annually.</strong> If 100% of sponsors accept your rate without pushback, the rate is too low.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+<div id="tooltip"></div>
+<footer>Creator Revenue Toolkit — open source, no tracking, all data in localStorage.</footer>
+
+<script>
+"use strict";
+
+/* ---------- constants ---------- */
+
+const STREAM_CATEGORIES = {
+  ads:          "Ad revenue",
+  sponsorships: "Sponsorships",
+  memberships:  "Memberships",
+  products:     "Digital products",
+  affiliate:    "Affiliate",
+  services:     "Services / consulting",
+  licensing:    "Licensing / syndication",
+  other:        "Other",
+};
+
+const EXPENSE_CATEGORIES = {
+  editing:     "Editing",
+  software:    "Software / subscriptions",
+  gear:        "Gear / equipment",
+  contractors: "Contractors / staff",
+  marketing:   "Marketing / promotion",
+  other:       "Other",
+};
+
+/* Sponsored-content benchmarks (host-read / integrated, USD, 2025–26 ranges).
+   basis "cpm" prices per 1,000 of the reach metric; "perViewer" prices per unit. */
+const PLATFORMS = {
+  youtube:    { label: "YouTube",    reachLabel: "Average views per video",       erBench: 4,   basis: "cpm",
+                integration: [20, 35], dedicated: [45, 70],
+                kinds: ["60–90s integration", "Dedicated video"] },
+  instagram:  { label: "Instagram",  reachLabel: "Average reel / post reach",     erBench: 2,   basis: "cpm",
+                integration: [8, 15],  dedicated: [18, 30],
+                kinds: ["Feed post / reel", "Reel + story set"] },
+  tiktok:     { label: "TikTok",     reachLabel: "Average views per video",       erBench: 5,   basis: "cpm",
+                integration: [10, 20], dedicated: [20, 35],
+                kinds: ["Integrated mention", "Dedicated video"] },
+  podcast:    { label: "Podcast",    reachLabel: "Downloads per episode (30 days)", erBench: null, basis: "cpm",
+                integration: [18, 25], dedicated: [25, 40],
+                kinds: ["30s host-read", "60s mid-roll host-read"] },
+  newsletter: { label: "Newsletter", reachLabel: "Opens per send",                erBench: null, basis: "cpm",
+                integration: [25, 40], dedicated: [45, 65],
+                kinds: ["Sponsored slot", "Dedicated send"] },
+  twitch:     { label: "Twitch",     reachLabel: "Average concurrent viewers",    erBench: null, basis: "perViewer",
+                integration: [8, 15],  dedicated: [20, 35],
+                kinds: ["Sponsored segment", "Sponsored stream"] },
+};
+
+const STREAM_SUGGESTIONS = [
+  { cat: "sponsorships", effort: "Medium effort", tip: "Usually the highest per-hour revenue once you pass ~10k engaged followers. Start outbound: pitch 5 brands already sponsoring creators your size." },
+  { cat: "affiliate",    effort: "Low effort",    tip: "Zero production cost — link the gear and tools you already mention. Amazon, LTK, or direct partner programs of products in your niche." },
+  { cat: "memberships",  effort: "Medium effort", tip: "Even 1% of an engaged audience at $5/mo is meaningful, recurring, and algorithm-proof. Patreon, YouTube/Twitch memberships, or Substack." },
+  { cat: "products",     effort: "High effort, high ceiling", tip: "Presets, templates, courses, ebooks — near-100% margin and infinitely scalable. Build the thing your comments keep asking for." },
+  { cat: "ads",          effort: "Low effort",    tip: "Platform ad revenue (AdSense, TikTok Creativity, podcast programmatic) is low per-view but fully passive once enabled." },
+  { cat: "services",     effort: "High effort",   tip: "Consulting, coaching, or done-for-you work monetizes expertise immediately — good early revenue while audience compounds." },
+  { cat: "licensing",    effort: "Low effort",    tip: "License existing clips to media outlets and stock platforms, or syndicate content to newsletters and networks." },
+];
+
+const SAMPLE = {
+  profile: { platform: "youtube", reach: 25000, followers: 120000, engagement: 4.5 },
+  growth:  { rate: 5, rpk: null },
+  streams: [
+    { id: 1, name: "YouTube AdSense",    category: "ads",          amount: 1400 },
+    { id: 2, name: "Brand integrations", category: "sponsorships", amount: 3600 },
+    { id: 3, name: "Patreon",            category: "memberships",  amount: 700 },
+    { id: 4, name: "Amazon affiliate",   category: "affiliate",    amount: 250 },
+    { id: 5, name: "Preset pack",        category: "products",     amount: 380 },
+  ],
+  expenses: [
+    { id: 1, name: "Video editor (freelance)", category: "editing",     amount: 900, essential: true },
+    { id: 2, name: "Adobe Creative Cloud",     category: "software",    amount: 60,  essential: true },
+    { id: 3, name: "Epidemic Sound",           category: "software",    amount: 18,  essential: false },
+    { id: 4, name: "Artlist",                  category: "software",    amount: 17,  essential: false },
+    { id: 5, name: "Thumbnail designer",       category: "contractors", amount: 240, essential: false },
+    { id: 6, name: "Gear payments",            category: "gear",        amount: 150, essential: false },
+  ],
+};
+
+/* ---------- state ---------- */
+
+const STORAGE_KEY = "crt-state-v1";
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* corrupted state falls through to fresh */ }
+  return { profile: { platform: "youtube", reach: null, followers: null, engagement: null },
+           growth: { rate: 5, rpk: null }, streams: [], expenses: [] };
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function nextId(list) { return list.reduce((m, x) => Math.max(m, x.id), 0) + 1; }
+
+/* ---------- helpers ---------- */
+
+const $ = (sel) => document.querySelector(sel);
+const fmtUSD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const fmtNum = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const money = (v) => fmtUSD.format(Math.round(v));
+const SERIES = ["--series-1", "--series-2", "--series-3", "--series-4", "--series-5"];
+const seriesColor = (i) => `var(${SERIES[Math.min(i, SERIES.length - 1)]})`;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function totalRevenue()  { return state.streams.reduce((s, x) => s + x.amount, 0); }
+function totalExpenses() { return state.expenses.reduce((s, x) => s + x.amount, 0); }
+
+/* Diversification: effective number of streams = 1 / Herfindahl index.
+   4+ effective streams scores 100. */
+function diversification() {
+  const total = totalRevenue();
+  if (!total || state.streams.length === 0) return null;
+  const hhi = state.streams.reduce((s, x) => s + Math.pow(x.amount / total, 2), 0);
+  const effective = 1 / hhi;
+  return { score: Math.min(100, Math.round((effective / 4) * 100)), effective };
+}
+
+/* ---------- tooltip ---------- */
+
+const tooltip = $("#tooltip");
+function showTooltip(html, x, y) {
+  tooltip.innerHTML = html;
+  tooltip.style.display = "block";
+  const pad = 14;
+  const r = tooltip.getBoundingClientRect();
+  let left = x + pad, top = y + pad;
+  if (left + r.width > window.innerWidth - 8) left = x - r.width - pad;
+  if (top + r.height > window.innerHeight - 8) top = y - r.height - pad;
+  tooltip.style.left = left + "px";
+  tooltip.style.top = top + "px";
+}
+function hideTooltip() { tooltip.style.display = "none"; }
+
+/* ---------- tabs ---------- */
+
+$("#tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("active", p.id === "tab-" + btn.dataset.tab));
+});
+
+/* ---------- theme ---------- */
+
+$("#btn-theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme === "dark" ||
+    (!root.dataset.theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.dataset.theme = dark ? "light" : "dark";
+  renderAll();
+});
+
+/* ---------- import / export / sample ---------- */
+
+$("#btn-export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "creator-revenue-data.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$("#btn-import").addEventListener("click", () => $("#import-file").click());
+$("#import-file").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  file.text().then((txt) => {
+    try {
+      const parsed = JSON.parse(txt);
+      if (!parsed || !Array.isArray(parsed.streams) || !Array.isArray(parsed.expenses)) throw new Error("bad shape");
+      state = parsed;
+      saveState();
+      renderAll();
+    } catch (err) { alert("Could not import: not a valid toolkit JSON export."); }
+    e.target.value = "";
+  });
+});
+$("#btn-sample").addEventListener("click", () => {
+  if (state.streams.length || state.expenses.length) {
+    if (!confirm("Replace your current data with the sample dataset?")) return;
+  }
+  state = JSON.parse(JSON.stringify(SAMPLE));
+  saveState();
+  renderAll();
+});
+
+/* ---------- selects ---------- */
+
+function fillSelect(sel, entries) {
+  sel.innerHTML = Object.entries(entries).map(([k, v]) => `<option value="${k}">${esc(v.label || v)}</option>`).join("");
+}
+fillSelect($("#rate-platform"), PLATFORMS);
+fillSelect($("#stream-category"), STREAM_CATEGORIES);
+fillSelect($("#expense-category"), EXPENSE_CATEGORIES);
+
+/* ---------- rates ---------- */
+
+const rateInputs = ["#rate-platform", "#rate-reach", "#rate-followers", "#rate-engagement",
+                    "#addon-usage", "#addon-exclusivity", "#addon-rush"];
+rateInputs.forEach((sel) => $(sel).addEventListener("input", () => {
+  state.profile.platform = $("#rate-platform").value;
+  state.profile.reach = num($("#rate-reach"));
+  state.profile.followers = num($("#rate-followers"));
+  state.profile.engagement = num($("#rate-engagement"));
+  saveState();
+  renderRates();
+  renderDashboard();
+  renderGrowth();
+}));
+function num(el) { const v = parseFloat(el.value); return isFinite(v) ? v : null; }
+
+function engagementMultiplier(platform, er) {
+  const bench = PLATFORMS[platform].erBench;
+  if (bench == null || er == null) return { mult: 1, note: null };
+  const ratio = er / bench;
+  const mult = Math.min(1.6, Math.max(0.8, 0.7 + 0.3 * ratio));
+  const dir = ratio >= 1.15 ? "above" : ratio <= 0.85 ? "below" : "around";
+  return { mult, note: `Engagement is ${dir} the ~${bench}% ${PLATFORMS[platform].label} benchmark → base rate × ${mult.toFixed(2)}.` };
+}
+
+function computeRates() {
+  const p = state.profile;
+  const plat = PLATFORMS[p.platform] || PLATFORMS.youtube;
+  if (!p.reach) return null;
+  const units = plat.basis === "cpm" ? p.reach / 1000 : p.reach;
+  const { mult, note } = engagementMultiplier(p.platform, p.engagement);
+  let addon = 1;
+  const addons = [];
+  if ($("#addon-usage").checked)       { addon += 0.25; addons.push("usage rights +25%"); }
+  if ($("#addon-exclusivity").checked) { addon += 0.20; addons.push("exclusivity +20%"); }
+  if ($("#addon-rush").checked)        { addon += 0.15; addons.push("rush +15%"); }
+  const mk = (range) => [units * range[0] * mult * addon, units * range[1] * mult * addon];
+  return {
+    plat, note, addons,
+    kinds: [
+      { kind: plat.kinds[0], range: mk(plat.integration), cpm: plat.integration },
+      { kind: plat.kinds[1], range: mk(plat.dedicated),   cpm: plat.dedicated },
+    ],
+  };
+}
+
+function renderRates() {
+  const p = state.profile;
+  $("#rate-platform").value = p.platform || "youtube";
+  $("#rate-reach-label").textContent = PLATFORMS[$("#rate-platform").value].reachLabel;
+  if (document.activeElement !== $("#rate-reach"))      $("#rate-reach").value = p.reach ?? "";
+  if (document.activeElement !== $("#rate-followers"))  $("#rate-followers").value = p.followers ?? "";
+  if (document.activeElement !== $("#rate-engagement")) $("#rate-engagement").value = p.engagement ?? "";
+
+  const r = computeRates();
+  const results = $("#rate-results"), notes = $("#rate-notes");
+  if (!r) {
+    results.innerHTML = "";
+    notes.innerHTML = `<p class="hint">Enter your average reach above to see suggested rates.</p>`;
+    return;
+  }
+  const basisTxt = r.plat.basis === "cpm" ? "per 1,000 of reach" : "per average viewer";
+  results.innerHTML = r.kinds.map((k) => `
+    <div class="rate-card">
+      <div class="kind">${esc(k.kind)}</div>
+      <div class="range">${money(k.range[0])} – ${money(k.range[1])}</div>
+      <div class="basis">$${k.cpm[0]}–$${k.cpm[1]} ${basisTxt}</div>
+    </div>`).join("");
+  const noteLines = [];
+  if (r.note) noteLines.push(r.note);
+  if (r.addons.length) noteLines.push("Add-ons applied: " + r.addons.join(", ") + ".");
+  notes.innerHTML = noteLines.map((n) => `<p class="hint">${esc(n)}</p>`).join("");
+}
+
+/* ---------- streams ---------- */
+
+$("#stream-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#stream-name").value.trim();
+  const amount = num($("#stream-amount"));
+  if (!name || amount == null || amount < 0) return;
+  state.streams.push({ id: nextId(state.streams), name, category: $("#stream-category").value, amount });
+  saveState();
+  e.target.reset();
+  renderAll();
+});
+
+function renderStreams() {
+  const tbl = $("#stream-table");
+  if (!state.streams.length) { tbl.innerHTML = ""; }
+  else {
+    const total = totalRevenue();
+    tbl.innerHTML = `<tr><th>Stream</th><th>Category</th><th class="num">$/month</th><th class="num">Share</th><th></th></tr>` +
+      state.streams.map((s) => `<tr>
+        <td>${esc(s.name)}</td>
+        <td>${STREAM_CATEGORIES[s.category] || esc(s.category)}</td>
+        <td class="num">${money(s.amount)}</td>
+        <td class="num">${total ? Math.round((s.amount / total) * 100) : 0}%</td>
+        <td><button class="rm" data-kind="stream" data-id="${s.id}" title="Remove">✕</button></td>
+      </tr>`).join("");
+  }
+  const have = new Set(state.streams.map((s) => s.category));
+  const missing = STREAM_SUGGESTIONS.filter((s) => !have.has(s.cat));
+  $("#stream-suggestions").innerHTML = missing.length
+    ? missing.map((s) => `<div class="flag warning">
+        <span class="icon">＋</span>
+        <div><span class="tag">${esc(s.effort)}</span> — <strong>${STREAM_CATEGORIES[s.cat]}</strong>
+          <div class="body">${esc(s.tip)}</div></div>
+      </div>`).join("")
+    : `<p class="hint">You have income in every major category — focus on deepening the biggest ones.</p>`;
+}
+
+/* ---------- expenses ---------- */
+
+$("#expense-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#expense-name").value.trim();
+  const amount = num($("#expense-amount"));
+  if (!name || amount == null || amount < 0) return;
+  state.expenses.push({ id: nextId(state.expenses), name, category: $("#expense-category").value,
+                        amount, essential: $("#expense-essential").checked });
+  saveState();
+  e.target.reset();
+  renderAll();
+});
+
+function renderExpenses() {
+  const tbl = $("#expense-table");
+  tbl.innerHTML = !state.expenses.length ? "" :
+    `<tr><th>Expense</th><th>Category</th><th class="num">$/month</th><th class="num">$/year</th><th>Essential</th><th></th></tr>` +
+    state.expenses.map((x) => `<tr>
+      <td>${esc(x.name)}</td>
+      <td>${EXPENSE_CATEGORIES[x.category] || esc(x.category)}</td>
+      <td class="num">${money(x.amount)}</td>
+      <td class="num">${money(x.amount * 12)}</td>
+      <td>${x.essential ? "Yes" : "—"}</td>
+      <td><button class="rm" data-kind="expense" data-id="${x.id}" title="Remove">✕</button></td>
+    </tr>`).join("");
+  $("#expense-audit").innerHTML = auditFlags().map(flagHTML).join("") ||
+    `<p class="hint">Add expenses to run the audit.</p>`;
+}
+
+function flagHTML(f) {
+  const icons = { good: "✔", warning: "⚠", serious: "⚠", critical: "✖" };
+  return `<div class="flag ${f.level}">
+    <span class="icon" style="color:var(--status-${f.level})">${icons[f.level]}</span>
+    <div><span class="tag">${f.level}</span> — <strong>${esc(f.title)}</strong>
+      <div class="body">${f.body}</div></div>
+  </div>`;
+}
+
+function auditFlags() {
+  const flags = [];
+  const rev = totalRevenue(), exp = totalExpenses();
+  if (!state.expenses.length) return flags;
+
+  if (rev > 0) {
+    const ratio = exp / rev;
+    if (ratio > 0.6)      flags.push({ level: "critical", title: `Costs are ${Math.round(ratio * 100)}% of revenue`, body: `Sustainable creator businesses usually run 20–40%. Cut non-essentials below and renegotiate your biggest line item first.` });
+    else if (ratio > 0.4) flags.push({ level: "serious",  title: `Costs are ${Math.round(ratio * 100)}% of revenue`, body: `Above the healthy 20–40% band. Review the largest non-essential expenses below.` });
+    else                  flags.push({ level: "good",     title: `Costs are ${Math.round(ratio * 100)}% of revenue`, body: `Within the healthy 20–40% band for a creator business.` });
+  }
+
+  // Multiple subscriptions in the same category → consolidation candidate.
+  const byCat = {};
+  state.expenses.forEach((x) => (byCat[x.category] = byCat[x.category] || []).push(x));
+  Object.entries(byCat).forEach(([cat, items]) => {
+    if (cat === "software" && items.length >= 2) {
+      const total = items.reduce((s, x) => s + x.amount, 0);
+      flags.push({ level: "warning", title: `${items.length} overlapping software subscriptions (${money(total)}/mo)`,
+        body: `${items.map((i) => esc(i.name)).join(", ")} — creators often pay for two tools that do the same job (e.g. two music libraries). Keeping one saves up to ${money(Math.min(...items.map((i) => i.amount)) * 12)}/year.` });
+    }
+  });
+
+  // Non-essential spend, annualized.
+  const nonEss = state.expenses.filter((x) => !x.essential);
+  if (nonEss.length) {
+    const total = nonEss.reduce((s, x) => s + x.amount, 0);
+    const top = [...nonEss].sort((a, b) => b.amount - a.amount)[0];
+    flags.push({ level: "warning", title: `${money(total * 12)}/year in non-essential spend`,
+      body: `Largest: <strong>${esc(top.name)}</strong> at ${money(top.amount * 12)}/year. Cancel-and-see-if-you-miss-it is a valid strategy for anything not marked essential.` });
+  }
+
+  flags.push({ level: "good", title: "Switch subscriptions to annual billing",
+    body: `Annual plans typically run 15–20% cheaper. Across your ${money(exp)}/mo of expenses that’s roughly ${money(exp * 12 * 0.15)}–${money(exp * 12 * 0.20)}/year back.` });
+  return flags;
+}
+
+/* ---------- remove buttons (streams + expenses) ---------- */
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button.rm");
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  if (btn.dataset.kind === "stream")  state.streams  = state.streams.filter((s) => s.id !== id);
+  if (btn.dataset.kind === "expense") state.expenses = state.expenses.filter((x) => x.id !== id);
+  saveState();
+  renderAll();
+});
+
+/* ---------- dashboard ---------- */
+
+function renderDashboard() {
+  const rev = totalRevenue(), exp = totalExpenses(), net = rev - exp;
+  const div = diversification();
+  const margin = rev > 0 ? Math.round((net / rev) * 100) : null;
+  $("#dash-tiles").innerHTML = `
+    <div class="tile"><div class="label">Monthly revenue</div><div class="value">${money(rev)}</div>
+      <div class="note">${state.streams.length} stream${state.streams.length === 1 ? "" : "s"}</div></div>
+    <div class="tile"><div class="label">Monthly costs</div><div class="value">${money(exp)}</div>
+      <div class="note">${money(exp * 12)}/year</div></div>
+    <div class="tile"><div class="label">Net profit</div><div class="value">${money(net)}</div>
+      <div class="note ${margin != null && margin >= 60 ? "good" : ""}">${margin != null ? margin + "% margin" : "—"}</div></div>
+    <div class="tile"><div class="label">Diversification</div><div class="value">${div ? div.score + "/100" : "—"}</div>
+      <div class="note">${div ? "≈" + div.effective.toFixed(1) + " effective streams" : "add streams to score"}</div></div>`;
+
+  renderMix();
+  renderRecs();
+}
+
+function mixSegments() {
+  const total = totalRevenue();
+  if (!total) return [];
+  const sorted = [...state.streams].sort((a, b) => b.amount - a.amount);
+  const top = sorted.slice(0, 4);
+  const rest = sorted.slice(4);
+  const segs = top.map((s, i) => ({ name: s.name, amount: s.amount, color: seriesColor(i) }));
+  if (rest.length) segs.push({ name: "Other (" + rest.length + ")", amount: rest.reduce((s, x) => s + x.amount, 0), color: seriesColor(4) });
+  return segs.map((s) => ({ ...s, share: s.amount / total }));
+}
+
+function renderMix() {
+  const segs = mixSegments();
+  $("#mix-empty").style.display = segs.length ? "none" : "block";
+  $("#mixbar").innerHTML = segs.map((s, i) => `
+    <div class="seg" data-i="${i}" style="flex:${s.share} 0 0; background:${s.color}"></div>`).join("");
+  $("#mix-legend").innerHTML = segs.map((s) => `
+    <span class="item"><span class="swatch" style="background:${s.color}"></span>${esc(s.name)}
+      <strong>${money(s.amount)}</strong> (${Math.round(s.share * 100)}%)</span>`).join("");
+  $("#mix-table").innerHTML = !segs.length ? "" :
+    `<tr><th>Stream</th><th class="num">$/month</th><th class="num">Share</th></tr>` +
+    segs.map((s) => `<tr><td>${esc(s.name)}</td><td class="num">${money(s.amount)}</td>
+      <td class="num">${Math.round(s.share * 100)}%</td></tr>`).join("");
+
+  $("#mixbar").querySelectorAll(".seg").forEach((el) => {
+    const s = segs[Number(el.dataset.i)];
+    el.addEventListener("mousemove", (e) =>
+      showTooltip(`<div class="t-label">${esc(s.name)}</div><strong>${money(s.amount)}</strong> · ${Math.round(s.share * 100)}% of revenue`, e.clientX, e.clientY));
+    el.addEventListener("mouseleave", hideTooltip);
+  });
+}
+
+function renderRecs() {
+  const recs = [];
+  const rev = totalRevenue();
+  const div = diversification();
+  const segs = mixSegments();
+
+  if (!state.streams.length) {
+    recs.push({ level: "warning", title: "Start by mapping your income", body: `Add your revenue streams (or load the sample data) — every recommendation is computed from them.` });
+  } else {
+    if (segs[0] && segs[0].share > 0.5)
+      recs.push({ level: "serious", title: `${Math.round(segs[0].share * 100)}% of revenue comes from “${esc(segs[0].name)}”`, body: `One policy change, algorithm shift, or lost deal takes most of your income with it. Grow a second stream until no single source exceeds ~50%.` });
+    if (div && div.score >= 75)
+      recs.push({ level: "good", title: `Well diversified (${div.score}/100)`, body: `Revenue is spread across ≈${div.effective.toFixed(1)} effective streams — resilient to any single platform.` });
+
+    const have = new Set(state.streams.map((s) => s.category));
+    if (!have.has("sponsorships") && (state.profile.followers || 0) >= 10000)
+      recs.push({ level: "warning", title: "You have sponsor-ready reach but no sponsorship income", body: `At ${fmtNum.format(state.profile.followers)} followers, sponsorships are usually a creator's single largest stream. Use the <strong>Sponsorship rates</strong> tab for your rate card.` });
+    if (!have.has("memberships") && rev > 0)
+      recs.push({ level: "warning", title: "No recurring community revenue", body: `Memberships are the most algorithm-proof stream. Even 0.5–1% of an engaged audience converting at $5/mo adds a stable floor.` });
+    if (!have.has("products"))
+      recs.push({ level: "warning", title: "No digital products", body: `Products (presets, templates, guides, courses) have near-100% margins and scale without extra hours. See <strong>Revenue streams → suggestions</strong>.` });
+  }
+
+  const exp = totalExpenses();
+  if (rev > 0 && exp / rev > 0.4)
+    recs.push({ level: "serious", title: `Spending ${Math.round((exp / rev) * 100)}% of revenue`, body: `Run the <strong>Expenses</strong> audit — consolidation and annual billing usually claw back 10–20% quickly.` });
+
+  const r = computeRates();
+  if (r) {
+    const sponsorRev = state.streams.filter((s) => s.category === "sponsorships").reduce((s, x) => s + x.amount, 0);
+    const oneDeal = r.kinds[0].range[0];
+    if (sponsorRev > 0 && sponsorRev < oneDeal)
+      recs.push({ level: "warning", title: "Your sponsorship income looks underpriced", body: `You report ${money(sponsorRev)}/mo from sponsorships, but a single ${esc(r.kinds[0].kind)} at your reach should start around ${money(oneDeal)}. Check the <strong>Sponsorship rates</strong> tab and re-quote your next deal.` });
+  }
+
+  $("#dash-recs").innerHTML = recs.map(flagHTML).join("") ||
+    `<p class="hint">Looking healthy — nothing to flag right now.</p>`;
+}
+
+/* ---------- growth ---------- */
+
+["#growth-audience", "#growth-rate", "#growth-rpk"].forEach((sel) =>
+  $(sel).addEventListener("input", () => {
+    state.growth.rate = num($("#growth-rate")) ?? 5;
+    state.growth.rpk = num($("#growth-rpk"));
+    const aud = num($("#growth-audience"));
+    if (aud != null) state.profile.followers = aud;
+    saveState();
+    renderGrowth();
+  }));
+
+function derivedRpk() {
+  const rev = totalRevenue(), f = state.profile.followers;
+  if (rev > 0 && f > 0) return rev / (f / 1000);
+  return null;
+}
+
+function renderGrowth() {
+  const audEl = $("#growth-audience"), rpkEl = $("#growth-rpk");
+  if (document.activeElement !== audEl) audEl.value = state.profile.followers ?? "";
+  if (document.activeElement !== $("#growth-rate")) $("#growth-rate").value = state.growth.rate ?? 5;
+  const rpk = state.growth.rpk ?? derivedRpk();
+  if (document.activeElement !== rpkEl) rpkEl.value = rpk != null ? +rpk.toFixed(1) : "";
+
+  const audience = state.profile.followers;
+  const g = (state.growth.rate ?? 5) / 100;
+  const svg = $("#growth-chart"), tbl = $("#growth-table");
+  if (!audience || rpk == null) {
+    svg.innerHTML = `<text x="340" y="130" text-anchor="middle" fill="var(--text-muted)" font-size="13" font-family="system-ui">Enter audience size and revenue per 1k (or add streams + followers) to project.</text>`;
+    tbl.innerHTML = "";
+    return;
+  }
+  const pts = [];
+  for (let m = 0; m <= 12; m++) {
+    const a = audience * Math.pow(1 + g, m);
+    pts.push({ m, audience: a, revenue: (a / 1000) * rpk });
+  }
+  drawLineChart(svg, pts);
+  tbl.innerHTML = `<tr><th>Month</th><th class="num">Audience</th><th class="num">Projected revenue</th></tr>` +
+    pts.map((p) => `<tr><td>${p.m === 0 ? "Now" : "+" + p.m}</td>
+      <td class="num">${fmtNum.format(Math.round(p.audience))}</td>
+      <td class="num">${money(p.revenue)}</td></tr>`).join("");
+}
+
+function drawLineChart(svg, pts) {
+  const W = 680, H = 260, L = 64, R = 36, T = 16, B = 30;
+  const iw = W - L - R, ih = H - T - B;
+  const maxV = Math.max(...pts.map((p) => p.revenue)) * 1.1 || 1;
+  const minV = Math.min(0, ...pts.map((p) => p.revenue));
+  const x = (m) => L + (m / 12) * iw;
+  const y = (v) => T + ih - ((v - minV) / (maxV - minV)) * ih;
+
+  const gridN = 4;
+  let out = "";
+  for (let i = 0; i <= gridN; i++) {
+    const v = minV + ((maxV - minV) * i) / gridN;
+    out += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+    out += `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="var(--text-muted)" font-size="11" font-family="system-ui" style="font-variant-numeric:tabular-nums">${money(v)}</text>`;
+  }
+  out += `<line x1="${L}" x2="${W - R}" y1="${y(minV)}" y2="${y(minV)}" stroke="var(--baseline)" stroke-width="1"/>`;
+  for (let m = 0; m <= 12; m += 3) {
+    out += `<text x="${x(m)}" y="${H - 8}" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-family="system-ui">${m === 0 ? "Now" : "+" + m + "mo"}</text>`;
+  }
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(p.m).toFixed(1)},${y(p.revenue).toFixed(1)}`).join(" ");
+  out += `<path d="${path}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const last = pts[pts.length - 1];
+  out += `<circle cx="${x(last.m)}" cy="${y(last.revenue)}" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/>`;
+  out += `<text x="${x(last.m) - 6}" y="${y(last.revenue) - 10}" text-anchor="end" fill="var(--text-primary)" font-size="12" font-weight="600" font-family="system-ui">${money(last.revenue)}/mo</text>`;
+  out += `<line id="gc-cross" y1="${T}" y2="${T + ih}" stroke="var(--baseline)" stroke-width="1" visibility="hidden"/>`;
+  out += `<circle id="gc-dot" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" visibility="hidden"/>`;
+  svg.innerHTML = out;
+
+  svg.onmousemove = (e) => {
+    const rect = svg.getBoundingClientRect();
+    const mx = ((e.clientX - rect.left) / rect.width) * W;
+    const m = Math.max(0, Math.min(12, Math.round(((mx - L) / iw) * 12)));
+    const p = pts[m];
+    const cross = svg.querySelector("#gc-cross"), dot = svg.querySelector("#gc-dot");
+    cross.setAttribute("x1", x(m)); cross.setAttribute("x2", x(m)); cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", x(m)); dot.setAttribute("cy", y(p.revenue)); dot.setAttribute("visibility", "visible");
+    showTooltip(`<div class="t-label">${m === 0 ? "Now" : "Month +" + m}</div>
+      <strong>${money(p.revenue)}/mo</strong><br>${fmtNum.format(Math.round(p.audience))} audience`, e.clientX, e.clientY);
+  };
+  svg.onmouseleave = () => {
+    hideTooltip();
+    const cross = svg.querySelector("#gc-cross"), dot = svg.querySelector("#gc-dot");
+    if (cross) cross.setAttribute("visibility", "hidden");
+    if (dot) dot.setAttribute("visibility", "hidden");
+  };
+}
+
+/* ---------- boot ---------- */
+
+function renderAll() {
+  renderDashboard();
+  renderRates();
+  renderStreams();
+  renderExpenses();
+  renderGrowth();
+}
+renderAll();
+</script>
+</body>
+</html>
