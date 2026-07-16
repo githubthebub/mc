@@ -1,0 +1,137 @@
+{
+  "id": "career-clarity",
+  "version": 1,
+  "title": "Career clarity",
+  "topic": "career-clarity",
+  "estimatedMinutes": 8,
+  "_README": "A branching, curated coaching flow. Every node is authored — nothing is generated. 'type' is one of: statement, choice, freeText, socratic, reframe, action, end. 'next' points to a node id; choice options carry their own 'next'. Optional 'setPattern' tags a pattern when a branch is taken. Optional 'requireAction' marks the closing concrete step. Keep node ids unique within the file.",
+  "start": "intro",
+  "nodes": {
+    "intro": {
+      "type": "statement",
+      "body": "Career clarity rarely arrives as a lightning bolt. It's usually a few honest answers you've been avoiding. Let's find the real question under the noise. This won't tell you what to do — it'll help you hear what you already suspect.",
+      "next": "whats_the_itch"
+    },
+    "whats_the_itch": {
+      "type": "choice",
+      "prompt": "What's actually pulling at you right now?",
+      "options": [
+        { "id": "wrong_path", "label": "I might be on the wrong path entirely", "next": "wrong_path_probe" },
+        { "id": "stuck_stalled", "label": "Right path, but I'm stalled and restless", "next": "stalled_probe" },
+        { "id": "cant_choose", "label": "I have options and can't choose", "next": "choose_probe", "setPattern": "rumination" },
+        { "id": "undervalued", "label": "I'm doing fine but feel unseen / undervalued", "next": "undervalued_probe" }
+      ]
+    },
+    "wrong_path_probe": {
+      "type": "choice",
+      "prompt": "When you imagine staying on this path for three more years, what's the strongest feeling?",
+      "options": [
+        { "id": "dread", "label": "Quiet dread", "next": "dread_reframe", "setPattern": "avoidance" },
+        { "id": "guilt", "label": "Guilt for wanting something else", "next": "guilt_reframe", "setPattern": "people_pleasing" },
+        { "id": "numb", "label": "Mostly numb / flat", "next": "numb_socratic" }
+      ]
+    },
+    "dread_reframe": {
+      "type": "reframe",
+      "body": "Dread about the future is data, not weakness. It's usually pointing at a value being crowded out. Notice you said 'quiet' — you've been keeping it quiet, which takes energy.",
+      "next": "value_crowded"
+    },
+    "guilt_reframe": {
+      "type": "reframe",
+      "body": "Wanting something different isn't a betrayal of the people who helped you get here. Their investment was in you, not in a specific job title. You're allowed to have wanted this once and want something else now.",
+      "next": "value_crowded"
+    },
+    "numb_socratic": {
+      "type": "socratic",
+      "body": "Numb is often the sound of a feeling that got no reply for a long time.",
+      "next": "value_crowded"
+    },
+    "value_crowded": {
+      "type": "freeText",
+      "prompt": "Finish this honestly: 'The part of me that's gone quiet in this work is the part that cares about ______.'",
+      "scanForCrisis": true,
+      "next": "clarify_value"
+    },
+    "clarify_value": {
+      "type": "reframe",
+      "body": "Hold onto that word. Clarity isn't picking the perfect job — it's refusing to keep abandoning that part of you. Any good next step protects it a little more than the last.",
+      "next": "career_action"
+    },
+    "stalled_probe": {
+      "type": "choice",
+      "prompt": "Be precise: is this a motivation problem or a permission problem?",
+      "options": [
+        { "id": "motivation", "label": "I don't feel like doing the work", "next": "motivation_socratic" },
+        { "id": "permission", "label": "I'm waiting for someone to say I'm allowed", "next": "permission_reframe", "setPattern": "people_pleasing" },
+        { "id": "fear", "label": "I'm scared I'll try and it won't be enough", "next": "perfection_reframe", "setPattern": "perfectionism" }
+      ]
+    },
+    "motivation_socratic": {
+      "type": "socratic",
+      "body": "Motivation usually follows action, not the other way round. The question is what tiny action you could take before you feel ready.",
+      "next": "career_action"
+    },
+    "permission_reframe": {
+      "type": "reframe",
+      "body": "If you're waiting for permission, notice you've handed someone else the pen to your life. Sometimes the whole move is deciding you're the one who signs off.",
+      "next": "career_action"
+    },
+    "perfection_reframe": {
+      "type": "reframe",
+      "body": "'Not enough' is perfectionism setting a bar so high that not trying feels safer than trying. But you can't steer a parked car. A messy attempt gives you something real to adjust; a perfect plan in your head gives you nothing.",
+      "next": "career_action"
+    },
+    "choose_probe": {
+      "type": "freeText",
+      "prompt": "You said you can't choose. Name the option you keep circling back to — the one you'd pick if you had to answer in five seconds.",
+      "scanForCrisis": true,
+      "next": "choose_reframe"
+    },
+    "choose_reframe": {
+      "type": "reframe",
+      "body": "You just answered in five seconds. Often the indecision isn't lack of an answer — it's reluctance to lose the options you'd give up. Choosing costs you the other doors. That grief is real, and it's not a reason to stay frozen at the crossroads.",
+      "next": "career_action"
+    },
+    "undervalued_probe": {
+      "type": "choice",
+      "prompt": "When you feel undervalued, what do you usually do?",
+      "options": [
+        { "id": "work_harder", "label": "Work harder and hope it's noticed", "next": "harder_reframe", "setPattern": "people_pleasing" },
+        { "id": "withdraw", "label": "Quietly withdraw / disengage", "next": "withdraw_socratic", "setPattern": "avoidance" },
+        { "id": "resent", "label": "Build up resentment", "next": "resent_socratic" }
+      ]
+    },
+    "harder_reframe": {
+      "type": "reframe",
+      "body": "Working harder to be seen teaches people you'll do more for the same recognition. Being valued often starts with you naming what you want out loud — not performing until someone guesses.",
+      "next": "career_action"
+    },
+    "withdraw_socratic": {
+      "type": "socratic",
+      "body": "Withdrawing protects you from disappointment but also from being known. What would it cost to stay engaged and ask directly for what you need?",
+      "next": "career_action"
+    },
+    "resent_socratic": {
+      "type": "socratic",
+      "body": "Resentment is often a boundary that never got spoken. What's the request hiding underneath it?",
+      "next": "career_action"
+    },
+    "career_action": {
+      "type": "action",
+      "requireAction": true,
+      "prompt": "Turn this into one small, concrete step you could take in the next 72 hours. Make it specific and finishable — a single conversation, a paragraph written, a question asked. Not 'figure out my career.'",
+      "suggestions": [
+        "Write one honest paragraph about what you'd change, for your eyes only.",
+        "Ask one person you trust the question you've been avoiding.",
+        "Block 25 minutes to start the smallest version of the thing.",
+        "Say the sentence you've been rehearsing to the person who needs to hear it."
+      ],
+      "next": "close"
+    },
+    "close": {
+      "type": "end",
+      "body": "You got to a real question and a real step — that's the whole job for today. Come back when it's done, and we'll take the next honest step from there.",
+      "offerQuestFromAction": true
+    }
+  }
+}

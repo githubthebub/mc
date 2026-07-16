@@ -1,0 +1,104 @@
+{
+  "id": "burnout",
+  "version": 1,
+  "title": "Running on empty",
+  "topic": "burnout",
+  "estimatedMinutes": 8,
+  "_README": "Branching burnout-reflection flow. Curated content only. NOTE: burnout here means everyday depletion and over-extension, not a medical condition. This flow never diagnoses. Free-text nodes with scanForCrisis:true are checked by the crisis scanner before storing.",
+  "start": "intro",
+  "nodes": {
+    "intro": {
+      "type": "statement",
+      "body": "Let's be straight: rest isn't a reward you earn after you've done enough. If you're running on empty, the goal here isn't to help you push harder — it's to find where the leak is. This is reflection, not medical advice; if you've felt persistently low or unwell, please talk to a professional.",
+      "next": "whats_draining"
+    },
+    "whats_draining": {
+      "type": "choice",
+      "prompt": "Where's most of your energy actually going right now?",
+      "options": [
+        { "id": "others", "label": "Meeting other people's needs and expectations", "next": "others_probe", "setPattern": "people_pleasing" },
+        { "id": "too_much", "label": "Too many commitments I said yes to", "next": "overcommit_probe", "setPattern": "overcommitment" },
+        { "id": "standards", "label": "Holding everything to an exhausting standard", "next": "standards_probe", "setPattern": "perfectionism" },
+        { "id": "worry", "label": "Worrying and replaying things in my head", "next": "worry_probe", "setPattern": "rumination" }
+      ]
+    },
+    "others_probe": {
+      "type": "freeText",
+      "prompt": "Whose approval are you most afraid of losing if you did less? Name them, honestly.",
+      "scanForCrisis": true,
+      "next": "others_reframe"
+    },
+    "others_reframe": {
+      "type": "reframe",
+      "body": "Here's the hard part: people who only value you at full output aren't valuing you — they're valuing your usefulness. The ones who actually care about you would rather have you intact than impressive. Depleting yourself to keep everyone happy quietly teaches them your limits don't exist.",
+      "next": "permission_to_rest"
+    },
+    "overcommit_probe": {
+      "type": "choice",
+      "prompt": "Think about your last three yeses. How many were actually a no you couldn't say?",
+      "options": [
+        { "id": "most", "label": "Most of them", "next": "overcommit_reframe" },
+        { "id": "some", "label": "One or two", "next": "overcommit_reframe" },
+        { "id": "none", "label": "None — I meant them all", "next": "meant_them_socratic" }
+      ]
+    },
+    "overcommit_reframe": {
+      "type": "reframe",
+      "body": "Every yes is a no to something else — usually your own rest, focus, or the things only you can do. A calendar full of other people's priorities isn't a sign of being needed; it's a sign your boundaries have gone missing. The fix isn't doing it all faster.",
+      "next": "permission_to_rest"
+    },
+    "meant_them_socratic": {
+      "type": "socratic",
+      "body": "If you meant them all and you're still empty, the issue may not be what you said yes to but that nothing gets to refill you in between.",
+      "next": "permission_to_rest"
+    },
+    "standards_probe": {
+      "type": "reframe",
+      "body": "Holding everything to a maximum standard means you never get to feel done. Perfectionism doesn't produce excellence — it produces exhaustion plus the constant feeling of falling short. Some things deserve your best. Most things just need to be finished.",
+      "next": "standards_socratic"
+    },
+    "standards_socratic": {
+      "type": "socratic",
+      "body": "Which task in front of you would be completely fine at 80%, if you let it?",
+      "next": "permission_to_rest"
+    },
+    "worry_probe": {
+      "type": "reframe",
+      "body": "Rumination feels productive — like if you think about it enough, you'll solve it. But replaying isn't problem-solving; it's the mind idling in high gear, burning fuel without moving. The tank empties either way.",
+      "next": "worry_socratic"
+    },
+    "worry_socratic": {
+      "type": "socratic",
+      "body": "Of everything you're turning over, what's the one piece that's actually yours to act on — and what's just noise you can set down?",
+      "next": "permission_to_rest"
+    },
+    "permission_to_rest": {
+      "type": "freeText",
+      "prompt": "Finish this: 'If I fully believed rest was allowed, the first thing I'd stop doing this week is ______.'",
+      "scanForCrisis": true,
+      "next": "rest_reframe"
+    },
+    "rest_reframe": {
+      "type": "reframe",
+      "body": "Read back what you wrote. You already know where the leak is. Recovering isn't about a big dramatic reset — it's about giving that one thing up, or shrinking it, on purpose.",
+      "next": "burnout_action"
+    },
+    "burnout_action": {
+      "type": "action",
+      "requireAction": true,
+      "prompt": "Name one small, protective step for the next 72 hours. Something that gives energy back or stops a leak — not another task.",
+      "suggestions": [
+        "Decline or postpone one commitment that isn't essential.",
+        "Protect a 30-minute block this week that's only for you, and defend it.",
+        "Let one task be 'good enough' on purpose and notice nothing breaks.",
+        "Tell one person you trust that you're running low — out loud."
+      ],
+      "next": "close"
+    },
+    "close": {
+      "type": "end",
+      "body": "You found the leak and picked one repair. That's enough for today — genuinely. Real recovery is a lot of small honest choices like this one, not a heroic push. And if the emptiness runs deeper than tiredness, please reach out to a professional or someone you trust.",
+      "offerQuestFromAction": true
+    }
+  }
+}

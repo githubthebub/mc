@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "appName": "Compass",
+  "tagline": "A structured space for honest self-reflection.",
+  "ageGate": {
+    "minAge": 18,
+    "note": "Configurable. Set the minimum age required to use the app."
+  },
+  "features": {
+    "moodTracking": true,
+    "patternTracking": true,
+    "quests": true,
+    "journaling": true,
+    "coachingFlows": true,
+    "toolkit": true
+  },
+  "telemetry": {
+    "enabled": false,
+    "note": "Telemetry is OFF and must remain opt-in and content-free if ever enabled. No user content may ever be transmitted."
+  },
+  "patternDetection": {
+    "windowDays": 30,
+    "recurrenceThreshold": 5,
+    "note": "If a pattern tag is logged >= recurrenceThreshold times within windowDays, the app gently surfaces it. Pure counting, no inference."
+  },
+  "questionSelector": {
+    "recentlyShownMemory": 12,
+    "note": "How many recently-shown questions to avoid repeating before they become eligible again."
+  }
+}

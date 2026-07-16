@@ -1,0 +1,39 @@
+{
+  "_README": "Overclaim + clinical-promise guardrail. If any of these phrases appears (case-insensitive, word-boundary aware) in user-facing content strings, the content validator FAILS. This enforces the spec's non-negotiable 'no overclaiming / not a medical device' rule at author time. 'allow' entries are contexts where a banned substring is acceptable (e.g. 'therapist' inside 'not a substitute for a therapist').",
+  "banned": [
+    "cure",
+    "cures",
+    "treatment",
+    "treats",
+    "diagnose",
+    "diagnosis",
+    "life-changing",
+    "life changing",
+    "better than a therapist",
+    "replace your therapist",
+    "clinically proven",
+    "guaranteed results",
+    "miracle",
+    "heal your"
+  ],
+  "allowContexts": [
+    "not a substitute for professional",
+    "not therapy",
+    "is not therapy",
+    "professional mental-health care",
+    "professional care",
+    "a licensed professional",
+    "talk to a professional",
+    "contact a professional",
+    "reach out to a professional",
+    "does not diagnose",
+    "never diagnose",
+    "not diagnose",
+    "no diagnosis",
+    "not a diagnosis",
+    "is a diagnosis",
+    "nothing here is a diagnosis",
+    "not medical advice",
+    "not a medical device"
+  ]
+}

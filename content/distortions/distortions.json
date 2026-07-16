@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "_README": "Cognitive-distortion identifier + pre-written reframe templates. The USER selects which distortion fits their thought; the app shows the matching reframe scaffold. All content is pre-written and evidence-informed, drawn from public CBT frameworks (Beck; Burns, 'Feeling Good', 1980; standard CBT psychoeducation). This is self-help psychoeducation, NOT therapy, NOT diagnosis. An attorney and a licensed clinician should review this content before release.",
+  "citation": "Distortion categories adapted from widely-published CBT psychoeducation (A. T. Beck; D. Burns, Feeling Good, 1980). Public-domain conceptual framework; wording here is original.",
+  "distortions": [
+    {
+      "id": "all_or_nothing",
+      "name": "All-or-nothing thinking",
+      "aka": ["black-and-white thinking", "polarised thinking"],
+      "description": "Seeing things in absolute categories — perfect or a failure, always or never.",
+      "example": "I missed one workout, so I've blown the whole thing.",
+      "reframeTemplate": "Where on the scale between 0 and 100 does this actually sit? One missed step is a data point, not a verdict. What would 'partly worked' look like here?",
+      "questionScaffold": "Name one piece of evidence that this isn't all-or-nothing."
+    },
+    {
+      "id": "overgeneralization",
+      "name": "Overgeneralisation",
+      "aka": ["always/never thinking"],
+      "description": "Treating a single event as a never-ending pattern.",
+      "example": "I got passed over. Nothing ever works out for me.",
+      "reframeTemplate": "The words 'always' and 'never' are worth checking. What are one or two times this went differently? What's specific to this situation rather than a rule about your whole life?",
+      "questionScaffold": "What's one counter-example to the 'always/never' version of this?"
+    },
+    {
+      "id": "mental_filter",
+      "name": "Mental filter",
+      "aka": ["selective abstraction"],
+      "description": "Focusing on a single negative and filtering out everything else.",
+      "example": "One person gave critical feedback, so the whole thing was a disaster.",
+      "reframeTemplate": "You're zooming in on one detail. If you widened the lens, what else was in the picture that you're leaving out?",
+      "questionScaffold": "Name two things that also went okay that the filter skipped."
+    },
+    {
+      "id": "discounting_positive",
+      "name": "Discounting the positive",
+      "aka": ["disqualifying the positive"],
+      "description": "Insisting that good things 'don't count.'",
+      "example": "They only thanked me to be polite.",
+      "reframeTemplate": "You're letting the good thing not count. If a friend did the same thing, would you dismiss it as easily? What if you let it count for exactly what it is?",
+      "questionScaffold": "State the positive plainly, without the 'but it doesn't count' clause."
+    },
+    {
+      "id": "jumping_to_conclusions",
+      "name": "Jumping to conclusions",
+      "aka": ["mind-reading", "fortune-telling"],
+      "description": "Assuming you know what others think, or predicting the future as fact.",
+      "example": "They didn't reply, so they must be angry with me.",
+      "reframeTemplate": "That's a guess wearing the costume of a fact. What are two other explanations that fit the same evidence? What do you actually know versus what are you predicting?",
+      "questionScaffold": "List one alternative explanation you can't rule out."
+    },
+    {
+      "id": "magnification",
+      "name": "Magnification / catastrophising",
+      "aka": ["blowing things out of proportion"],
+      "description": "Treating something as far bigger or more catastrophic than it is.",
+      "example": "If I mess up this talk, my career is over.",
+      "reframeTemplate": "Run it forward honestly: if the worst happened, how would you cope, and how much would it matter in a year? What's the most likely outcome, not the worst imaginable one?",
+      "questionScaffold": "What's the realistic outcome, and how would you handle it?"
+    },
+    {
+      "id": "emotional_reasoning",
+      "name": "Emotional reasoning",
+      "aka": [],
+      "description": "Taking a feeling as proof of a fact — 'I feel it, so it's true.'",
+      "example": "I feel like a fraud, so I must be one.",
+      "reframeTemplate": "A feeling is real information about your state — it isn't a verdict on reality. If you separated the feeling from the fact, what does the evidence say, apart from how it feels?",
+      "questionScaffold": "Write the feeling and the fact as two separate lines."
+    },
+    {
+      "id": "should_statements",
+      "name": "Should statements",
+      "aka": ["musts", "oughts"],
+      "description": "Rigid rules about how you or others must be, often followed by guilt or frustration.",
+      "example": "I should be over this by now.",
+      "reframeTemplate": "Whose rule is that 'should', and is it fair? Try swapping 'I should' for 'I'd like to' or 'it would help to.' What changes when the pressure comes off?",
+      "questionScaffold": "Rewrite the 'should' as a preference or a choice."
+    },
+    {
+      "id": "labeling",
+      "name": "Labelling",
+      "aka": ["mislabelling"],
+      "description": "Attaching a fixed global label to yourself or others based on one event.",
+      "example": "I forgot it — I'm an idiot.",
+      "reframeTemplate": "You did a thing; you are not the label. Describe what actually happened as an action, not an identity. What would you call the same action if a friend did it?",
+      "questionScaffold": "Replace the label with a description of the specific behaviour."
+    },
+    {
+      "id": "personalization",
+      "name": "Personalisation & blame",
+      "aka": [],
+      "description": "Holding yourself responsible for things outside your control (or vice versa).",
+      "example": "The team missed the deadline — it's all my fault.",
+      "reframeTemplate": "Draw the line between what was yours to control and what wasn't. What share is genuinely yours, and what belonged to circumstances or others? What could you own without owning all of it?",
+      "questionScaffold": "Name one factor here that was outside your control."
+    }
+  ]
+}

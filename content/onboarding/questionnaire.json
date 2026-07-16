@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "_README": "Structured onboarding. Maps answers deterministically onto (a) a values profile and (b) pattern tags. No inference beyond the explicit scoring weights below. Edit questions/options freely; keep option ids stable if you have existing users.",
+  "intro": {
+    "title": "Let's get oriented",
+    "body": "A few honest questions. There are no right answers, and nothing here is a diagnosis — it just helps Compass point you at what matters to you. Your answers stay on this device."
+  },
+  "valuesProfile": {
+    "dimensions": [
+      { "id": "growth", "label": "Growth & mastery" },
+      { "id": "connection", "label": "Connection & belonging" },
+      { "id": "autonomy", "label": "Autonomy & freedom" },
+      { "id": "security", "label": "Stability & security" },
+      { "id": "contribution", "label": "Contribution & meaning" },
+      { "id": "vitality", "label": "Health & vitality" }
+    ]
+  },
+  "patternTags": [
+    { "id": "avoidance", "label": "Avoidance", "description": "Putting off what matters when it feels uncomfortable." },
+    { "id": "people_pleasing", "label": "People-pleasing", "description": "Prioritising others' approval over your own needs." },
+    { "id": "perfectionism", "label": "Perfectionism", "description": "All-or-nothing standards that stall action." },
+    { "id": "self_criticism", "label": "Harsh self-criticism", "description": "A loud inner critic." },
+    { "id": "overcommitment", "label": "Over-commitment", "description": "Saying yes past your capacity." },
+    { "id": "rumination", "label": "Rumination", "description": "Looping on problems without moving." }
+  ],
+  "questions": [
+    {
+      "id": "q_value_rank",
+      "type": "rank_top_two",
+      "prompt": "When you're at your best, what are you usually moving toward?",
+      "options": [
+        { "id": "o_growth", "label": "Learning and getting better at something", "scores": { "values": { "growth": 2 } } },
+        { "id": "o_connection", "label": "Being close to people I care about", "scores": { "values": { "connection": 2 } } },
+        { "id": "o_autonomy", "label": "Doing things my own way, on my own terms", "scores": { "values": { "autonomy": 2 } } },
+        { "id": "o_security", "label": "Feeling stable and safe", "scores": { "values": { "security": 2 } } },
+        { "id": "o_contribution", "label": "Making a difference to something bigger than me", "scores": { "values": { "contribution": 2 } } },
+        { "id": "o_vitality", "label": "Feeling healthy and energised", "scores": { "values": { "vitality": 2 } } }
+      ]
+    },
+    {
+      "id": "q_stuck",
+      "type": "single",
+      "prompt": "Think of something you keep meaning to do but haven't. What's most true about the gap?",
+      "options": [
+        { "id": "o_uncomfortable", "label": "It feels uncomfortable, so I keep finding other things to do", "scores": { "patterns": { "avoidance": 2 } } },
+        { "id": "o_notperfect", "label": "I can't start until I know I'll do it well", "scores": { "patterns": { "perfectionism": 2 } } },
+        { "id": "o_noroom", "label": "I'm too busy with things I said yes to for other people", "scores": { "patterns": { "overcommitment": 1, "people_pleasing": 1 } } },
+        { "id": "o_thinking", "label": "I keep turning it over in my head instead of acting", "scores": { "patterns": { "rumination": 2 } } }
+      ]
+    },
+    {
+      "id": "q_after_mistake",
+      "type": "single",
+      "prompt": "After you make a mistake, the loudest voice in your head usually…",
+      "options": [
+        { "id": "o_harsh", "label": "Tears into me — I should've known better", "scores": { "patterns": { "self_criticism": 2 } } },
+        { "id": "o_replays", "label": "Replays it on a loop for hours or days", "scores": { "patterns": { "rumination": 2 } } },
+        { "id": "o_hides", "label": "Wants to avoid the thing that caused it", "scores": { "patterns": { "avoidance": 1 } } },
+        { "id": "o_moves", "label": "Notes it and moves on fairly quickly", "scores": {} }
+      ]
+    },
+    {
+      "id": "q_saying_no",
+      "type": "single",
+      "prompt": "When someone asks for your time and you don't have it, you…",
+      "options": [
+        { "id": "o_yes_anyway", "label": "Usually say yes anyway and figure it out later", "scores": { "patterns": { "people_pleasing": 2, "overcommitment": 1 } } },
+        { "id": "o_guilt", "label": "Say no but feel guilty about it", "scores": { "patterns": { "people_pleasing": 1 } } },
+        { "id": "o_clear", "label": "Say no fairly cleanly", "scores": {} }
+      ]
+    },
+    {
+      "id": "q_focus_area",
+      "type": "single",
+      "prompt": "If one area got noticeably better over the next month, which would you pick?",
+      "options": [
+        { "id": "o_career", "label": "Career / direction", "scores": { "topicHint": "career-clarity" } },
+        { "id": "o_burnout", "label": "Energy / burnout", "scores": { "topicHint": "burnout" } },
+        { "id": "o_relationships", "label": "Relationships", "scores": { "topicHint": "relationships" } },
+        { "id": "o_habits", "label": "Habits / follow-through", "scores": { "topicHint": "habits" } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "_README": "Starter micro-action quests. A quest is a small, finishable action tied to a value/pattern. Progress is encouraging, never punishing: no streak-shaming, no guilt copy. 'cadence' is a gentle suggestion, not a rule. Users can also create quests from a flow's closing action. Keep ids stable.",
+  "quests": [
+    {
+      "id": "quest_boundary_one_no",
+      "title": "Say one honest no",
+      "summary": "Decline one request this week that you'd normally accept out of guilt.",
+      "why": "Boundaries are a skill that strengthens with reps. One clean no teaches people (and you) that your limits are real.",
+      "values": ["autonomy"],
+      "patterns": ["people_pleasing", "overcommitment"],
+      "cadence": "weekly",
+      "checkInPrompt": "How did saying no land — for them, and for you?"
+    },
+    {
+      "id": "quest_smallest_step",
+      "title": "Start badly, on purpose",
+      "summary": "Do a deliberately rough first version of something you've been perfecting in your head.",
+      "why": "Perfectionism stalls action. A bad draft is worth more than a perfect intention because you can actually improve it.",
+      "values": ["growth"],
+      "patterns": ["perfectionism", "avoidance"],
+      "cadence": "once",
+      "checkInPrompt": "What happened when you let it be imperfect?"
+    },
+    {
+      "id": "quest_energy_audit",
+      "title": "Notice one energy leak",
+      "summary": "For one day, notice a single recurring thing that drains you more than it should.",
+      "why": "You can't plug a leak you haven't located. Awareness comes before change.",
+      "values": ["vitality"],
+      "patterns": ["overcommitment", "rumination"],
+      "cadence": "once",
+      "checkInPrompt": "What did you notice was quietly costing you energy?"
+    },
+    {
+      "id": "quest_reach_out",
+      "title": "Reach toward one person",
+      "summary": "Send one message to someone you've been meaning to connect with.",
+      "why": "Real-world connection is the thing this app most wants for you. A single message can reopen a door.",
+      "values": ["connection"],
+      "patterns": ["avoidance"],
+      "cadence": "weekly",
+      "checkInPrompt": "How did reaching out feel, honestly?"
+    },
+    {
+      "id": "quest_self_talk",
+      "title": "Catch one harsh thought",
+      "summary": "Notice one moment of harsh self-talk and rewrite it as you'd speak to a friend.",
+      "why": "You don't have to believe the kinder version yet. Practising it changes the default over time.",
+      "values": ["growth"],
+      "patterns": ["self_criticism"],
+      "cadence": "daily",
+      "checkInPrompt": "What was the harsh line, and what did you replace it with?"
+    },
+    {
+      "id": "quest_one_rest",
+      "title": "Protect one real break",
+      "summary": "Defend a 20–30 minute break this week that is only for you.",
+      "why": "Rest isn't earned by finishing everything — nothing is ever finished. It's how you keep showing up.",
+      "values": ["vitality"],
+      "patterns": ["overcommitment", "perfectionism"],
+      "cadence": "weekly",
+      "checkInPrompt": "Did you take it? What got in the way, or what helped?"
+    },
+    {
+      "id": "quest_name_want",
+      "title": "Name one thing you want",
+      "summary": "Say out loud, or write down, one thing you actually want — without justifying it.",
+      "why": "People-pleasing buries your own wants under everyone else's. Naming one is how you start to hear yourself again.",
+      "values": ["autonomy", "contribution"],
+      "patterns": ["people_pleasing"],
+      "cadence": "once",
+      "checkInPrompt": "What did you want, and what was it like to say it plainly?"
+    },
+    {
+      "id": "quest_finish_small",
+      "title": "Finish one small thing",
+      "summary": "Pick one tiny lingering task and complete it today.",
+      "why": "Momentum is built from finished small things, not planned big ones. Done beats perfect.",
+      "values": ["growth"],
+      "patterns": ["avoidance", "rumination"],
+      "cadence": "daily",
+      "checkInPrompt": "What did you finish, and how did done feel?"
+    }
+  ]
+}

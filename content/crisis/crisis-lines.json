@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "_README": "PLACEHOLDER DATA. Replace the hotlines below with verified, region-appropriate crisis resources before release. The keyword list triggers a calm, non-clinical resources screen. This is NOT a diagnostic tool and does not counsel — it only surfaces resources. Keep entries accurate and current; outdated crisis numbers can cause harm.",
+  "defaultRegion": "GLOBAL",
+  "regions": {
+    "GLOBAL": {
+      "label": "International",
+      "message": "You don't have to get through this alone. Reaching out to a person you trust or a trained listener is a strong, healthy step.",
+      "resources": [
+        {
+          "name": "PLACEHOLDER — International Association for Suicide Prevention (crisis centre directory)",
+          "contact": "https://www.iasp.info/resources/Crisis_Centres/",
+          "type": "directory",
+          "note": "Replace/verify before release."
+        },
+        {
+          "name": "PLACEHOLDER — Local emergency services",
+          "contact": "Dial your local emergency number",
+          "type": "emergency",
+          "note": "Replace with the correct emergency number for each region you ship to."
+        }
+      ]
+    },
+    "US": {
+      "label": "United States",
+      "message": "You don't have to get through this alone. A trained listener is available right now.",
+      "resources": [
+        {
+          "name": "PLACEHOLDER — 988 Suicide & Crisis Lifeline",
+          "contact": "Call or text 988",
+          "type": "hotline",
+          "note": "Verify before release."
+        },
+        {
+          "name": "PLACEHOLDER — Crisis Text Line",
+          "contact": "Text HOME to 741741",
+          "type": "text",
+          "note": "Verify before release."
+        }
+      ]
+    }
+  },
+  "keywordMatching": {
+    "_note": "Deterministic substring/word matching only. Case-insensitive, word-boundary aware. Maintained list — expand carefully and review with a professional. Matching a keyword routes the user to the resources screen; it never diagnoses.",
+    "keywords": [
+      "suicide",
+      "suicidal",
+      "kill myself",
+      "killing myself",
+      "end my life",
+      "ending my life",
+      "want to die",
+      "wanna die",
+      "better off dead",
+      "no reason to live",
+      "not worth living",
+      "take my own life",
+      "hurt myself",
+      "harm myself",
+      "self harm",
+      "self-harm",
+      "cut myself",
+      "cutting myself",
+      "overdose",
+      "can't go on",
+      "cant go on"
+    ],
+    "excludePhrases": [
+      "kill it at work",
+      "dying to",
+      "dead tired",
+      "killer deadline"
+    ]
+  }
+}

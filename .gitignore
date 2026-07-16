@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+*.orig.*
+
+# Native
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Env / secrets (there is no backend, but never commit secrets)
+.env
+.env.*
+
+# Build / cache
+*.log
+npm-debug.*
+yarn-error.*
+.DS_Store
+coverage/
+
+# Editor
+.idea/
+.vscode/

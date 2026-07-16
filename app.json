@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Compass",
+    "slug": "compass",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "compass",
+    "platforms": ["ios", "android"],
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.compass",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.example.compass"
+    },
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-sqlite"
+    ],
+    "extra": {
+      "privacy": "on-device-only",
+      "note": "No analytics SDKs, no OTA updates, no network calls containing user content. See PRIVACY.md."
+    }
+  }
+}

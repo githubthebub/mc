@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "_README": "Curated guided-journaling prompts, tagged by theme and pattern. Served deterministically by the same weighted, non-repeating selector used for Socratic questions. Entries are stored on-device only. Free-text entries are scanned by the crisis scanner before saving.",
+  "prompts": [
+    { "id": "jp01", "text": "What's one thing you're carrying today that you haven't said out loud to anyone?", "themes": ["general"], "patterns": ["avoidance"] },
+    { "id": "jp02", "text": "Describe a moment today when you felt most like yourself. What made it possible?", "themes": ["general", "vitality"], "patterns": [] },
+    { "id": "jp03", "text": "What did you say yes to this week that you wish you hadn't? What made it hard to decline?", "themes": ["boundaries"], "patterns": ["people_pleasing", "overcommitment"] },
+    { "id": "jp04", "text": "Write the harshest thing your inner critic said today — then answer it the way a fair friend would.", "themes": ["self-talk"], "patterns": ["self_criticism"] },
+    { "id": "jp05", "text": "What are you avoiding right now, and what feeling are you avoiding along with it?", "themes": ["general"], "patterns": ["avoidance"] },
+    { "id": "jp06", "text": "What would 'enough' have looked like today? Did you let yourself reach it?", "themes": ["general"], "patterns": ["perfectionism"] },
+    { "id": "jp07", "text": "Who or what refilled your energy recently? How could you get a little more of that?", "themes": ["vitality"], "patterns": [] },
+    { "id": "jp08", "text": "What's a thought you kept circling today? Write it once, fully — then set it down.", "themes": ["general"], "patterns": ["rumination"] },
+    { "id": "jp09", "text": "What did you want today that you didn't let yourself ask for?", "themes": ["boundaries"], "patterns": ["people_pleasing"] },
+    { "id": "jp10", "text": "Name one small thing you finished today. Let it count.", "themes": ["momentum"], "patterns": ["avoidance", "self_criticism"] },
+    { "id": "jp11", "text": "Where did you feel resentment today? What unspoken need was underneath it?", "themes": ["relationships"], "patterns": ["people_pleasing"] },
+    { "id": "jp12", "text": "If tomorrow could be 10% kinder to yourself, what would you do differently?", "themes": ["self-talk"], "patterns": ["self_criticism"] },
+    { "id": "jp13", "text": "What are you pretending is fine that actually isn't?", "themes": ["general"], "patterns": ["avoidance"] },
+    { "id": "jp14", "text": "Describe something you're genuinely looking forward to. Why does it matter to you?", "themes": ["motivation"], "patterns": [] },
+    { "id": "jp15", "text": "What boundary do you need to set, and what's the smallest way to start?", "themes": ["boundaries"], "patterns": ["people_pleasing", "overcommitment"] },
+    { "id": "jp16", "text": "What did today teach you about what you value?", "themes": ["values"], "patterns": [] },
+    { "id": "jp17", "text": "When did you feel most depleted today? What preceded it?", "themes": ["vitality"], "patterns": ["overcommitment"] },
+    { "id": "jp18", "text": "Write down one thing you're proud of that no one else knows about.", "themes": ["self-talk"], "patterns": ["self_criticism"] },
+    { "id": "jp19", "text": "What's a story you keep telling about yourself? Is it still true?", "themes": ["general"], "patterns": ["self_criticism", "rumination"] },
+    { "id": "jp20", "text": "What would you do this week if you trusted yourself to handle whatever happened?", "themes": ["motivation"], "patterns": ["avoidance", "perfectionism"] }
+  ]
+}
