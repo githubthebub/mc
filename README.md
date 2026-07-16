@@ -1,3 +1,7 @@
+> 🌍 **New:** [Kindred Atlas](game/README.md) — a zero-dependency browser game where you
+> befriend spirit-creatures through real negotiation technique and trade your way across
+> London, the USA, Japan and India. Open [`game/index.html`](game/index.html) to play.
+
 # Photon
 Photon is a VFX (visual effect) editor mod developed for minecraft which is inspired by unity.
 

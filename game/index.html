@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kindred Atlas — befriend, don’t capture</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="wrap">
+    <div id="topbar">
+      <div id="hud">
+        <span id="hud-country" class="chip"></span>
+        <span id="hud-money" class="chip money"></span>
+        <span id="hud-goods" class="chip" title="Goods your Kindred have gathered"></span>
+        <span id="hud-party" class="chip" title="Kindred befriended"></span>
+        <span id="hud-fluency" class="chip" title="Cultural fluency here"></span>
+      </div>
+      <div id="buttons">
+        <button id="btn-map" title="World map (M)">✈️ Map</button>
+        <button id="btn-journal" title="Field notes (J)">📓 Journal</button>
+        <button id="btn-help" title="Help (H)">🧭 Help</button>
+        <button id="btn-reset" title="Erase save">↺</button>
+      </div>
+    </div>
+
+    <div id="stage">
+      <canvas id="game" width="960" height="600"></canvas>
+      <div id="prompt"></div>
+      <div id="toast"></div>
+      <div id="modal" class="hidden">
+        <div id="modal-box"></div>
+      </div>
+    </div>
+
+    <div id="footer">
+      WASD/arrows to move · E to talk · M map · J journal —
+      <em>Kindred are befriended by negotiation, never captured. Everything you learn here works in real life.</em>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
