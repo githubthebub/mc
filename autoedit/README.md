@@ -26,6 +26,10 @@ Outputs land in `07_package/` (named final, `shorts/`, `thumbnail.png`, `metadat
 Set `ANTHROPIC_API_KEY` for the planner; without it the plan stage falls back to dead-air removal only and says so.
 Configuration: an optional `autoedit.yaml` (projects_dir, models_dir, skill_dir, llm.model, whisper.model, render.workers).
 
+## Hosting
+
+To run it on Fly.io behind your own domain, see `deploy/DEPLOY.md`.
+
 ## Batch mode
 
 ```

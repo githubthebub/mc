@@ -1,0 +1,10 @@
+# only autoedit/ and the skill go into the image
+*
+!autoedit/pyproject.toml
+!autoedit/README.md
+!autoedit/src/**
+!autoedit/profiles/**
+!autoedit/deploy/**
+!.claude/skills/video-editor/**
+**/__pycache__
+**/*.egg-info

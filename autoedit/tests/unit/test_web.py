@@ -67,3 +67,32 @@ def test_file_serving_stays_inside_the_project(client):
     assert c.get("/p/demo-video/file/06_verify/frames/x.png").status_code == 200
     assert c.get("/p/demo-video/file/../../etc/passwd").status_code == 404
     assert c.get("/p/demo-video/file/06_verify/missing.png").status_code == 404
+
+
+def test_password_protects_everything_but_healthz(client, monkeypatch):
+    c, p = client
+    monkeypatch.setenv("AUTOEDIT_PASSWORD", "s3cret")
+    assert c.get("/healthz").status_code == 200
+    assert c.get("/").status_code == 401
+    assert c.get("/", auth=("anyone", "wrong")).status_code == 401
+    assert c.get("/", auth=("anyone", "s3cret")).status_code == 200
+    assert c.get("/p/demo-video/file/06_verify/frames/x.png").status_code == 401
+
+
+def test_upload_creates_a_project(client, tmp_path):
+    c, _ = client
+    r = c.post("/new", data={"name": "Uploaded", "profile": "personal"},
+               files={"source_file": ("my clip.mp4", b"\0" * 2048, "video/mp4"),
+                      "transcript_file": ("words.json", b'{"words": []}', "application/json")}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/p/uploaded"
+    p = Project.open(webapp.settings().projects_dir / "uploaded")
+    assert p.source is not None and p.source.exists() and p.source.stat().st_size == 2048
+    assert Path(p.options["transcript"]).exists() and Path(p.options["transcript"]).parent == p.root / "assets"
+    assert not any((webapp.settings().projects_dir / ".uploads").glob("*")), "staging is cleaned up"
+    r = c.post("/new", data={"name": "Nothing", "profile": "personal"}, follow_redirects=False)
+    assert r.status_code == 400
+
+
+def test_serve_refuses_public_bind_without_password(monkeypatch):
+    monkeypatch.delenv("AUTOEDIT_PASSWORD", raising=False)
+    assert webapp.serve(host="0.0.0.0", port=1) == 2

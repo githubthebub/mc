@@ -8,8 +8,13 @@ import time
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+import base64
+import secrets
+import shutil
+import threading
+
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -23,6 +28,55 @@ from ..project import STAGES, Project
 HERE = Path(__file__).parent
 app = FastAPI(title="autoedit")
 app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
+
+UPLOAD_CHUNK = 1 << 20
+ASSET_KINDS = {"music": "music_dir", "sfx": "sfx_dir"}
+
+
+@app.middleware("http")
+async def basic_auth(request: Request, call_next):
+    """HTTP basic auth when AUTOEDIT_PASSWORD is set (any user name). /healthz stays open for the platform."""
+    pw = os.environ.get("AUTOEDIT_PASSWORD")
+    if not pw or request.url.path == "/healthz":
+        return await call_next(request)
+    header = request.headers.get("authorization", "")
+    if header.lower().startswith("basic "):
+        try:
+            _, _, given = base64.b64decode(header[6:]).decode("utf-8", "replace").partition(":")
+            if secrets.compare_digest(given.encode(), pw.encode()):
+                return await call_next(request)
+        except (ValueError, UnicodeError):
+            pass
+    return Response("authentication required", status_code=401, headers={"WWW-Authenticate": 'Basic realm="autoedit"'})
+
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+
+def _safe_name(name: str) -> str:
+    base = Path(name or "upload").name
+    keep = "".join(c if c.isalnum() or c in "._- " else "_" for c in base).strip() or "upload"
+    return keep[:120]
+
+
+async def save_upload(up: UploadFile, dest_dir: Path) -> Path:
+    """Stream an upload to disk in chunks (videos can be several GB)."""
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / _safe_name(up.filename or "upload")
+    with dest.open("wb") as f:
+        while True:
+            chunk = await up.read(UPLOAD_CHUNK)
+            if not chunk:
+                break
+            f.write(chunk)
+    await up.close()
+    return dest
+
+
+def _has_file(up: UploadFile | None) -> bool:
+    return up is not None and bool(up.filename)
 templates = Jinja2Templates(directory=str(HERE / "templates"))
 _settings: Settings | None = None
 
@@ -75,7 +129,22 @@ def qa_of(p: Project) -> dict[str, Any] | None:
                                                      for k, v in q.get("outputs", {}).items()}}
 
 
+_worker_thread: threading.Thread | None = None
+
+
+def start_worker_thread() -> None:
+    """Run the job worker inside this process (hosted mode: one machine runs the UI and the jobs)."""
+    global _worker_thread
+    if _worker_thread is not None and _worker_thread.is_alive():
+        return
+    from ..batch.worker import worker_loop
+    _worker_thread = threading.Thread(target=worker_loop, args=(queue(),), name="autoedit-worker", daemon=True)
+    _worker_thread.start()
+
+
 def worker_alive() -> dict[str, Any]:
+    if _worker_thread is not None and _worker_thread.is_alive():
+        return {"pid": os.getpid(), "alive": True, "in_process": True}
     pidfile = settings().projects_dir / "worker.pid"
     pid = None
     alive = False
@@ -121,20 +190,96 @@ def index(request: Request):
 
 
 @app.post("/new")
-def new_project(name: str = Form(...), source: str = Form(""), script: str = Form(""), profile: str = Form("personal"),
-                transcript: str = Form("")):
+async def new_project(name: str = Form(...), source: str = Form(""), script: str = Form(""), profile: str = Form("personal"),
+                      transcript: str = Form(""), source_file: UploadFile | None = File(None),
+                      script_file: UploadFile | None = File(None), transcript_file: UploadFile | None = File(None),
+                      avatar_files: list[UploadFile] | None = File(None)):
+    """Create a project from uploaded files (hosted use) or from paths on this machine (local use)."""
     from ..profile import load_profile
+    from ..project import slugify
     fmt = load_profile(profile, settings().profiles_dir).format
-    opts = {}
-    if script.strip():
-        opts["script"] = str(Path(script.strip()).expanduser().resolve())
-    if transcript.strip():
-        opts["transcript"] = str(Path(transcript.strip()).expanduser().resolve())
+    staging = settings().projects_dir / ".uploads" / f"{slugify(name)}-{int(time.time())}"
+    opts: dict[str, str] = {}
+    src_path: Path | None = None
     try:
-        p = Project.create(settings().projects_dir, name, Path(source.strip()) if source.strip() else None, profile, fmt, options=opts)
+        if _has_file(source_file):
+            src_path = await save_upload(source_file, staging)  # type: ignore[arg-type]
+        elif source.strip():
+            src_path = Path(source.strip()).expanduser()
+        if _has_file(script_file):
+            opts["script"] = str(await save_upload(script_file, staging))  # type: ignore[arg-type]
+        elif script.strip():
+            opts["script"] = str(Path(script.strip()).expanduser().resolve())
+        if _has_file(transcript_file):
+            opts["transcript"] = str(await save_upload(transcript_file, staging))  # type: ignore[arg-type]
+        elif transcript.strip():
+            opts["transcript"] = str(Path(transcript.strip()).expanduser().resolve())
+        for av in avatar_files or []:
+            if _has_file(av):
+                await save_upload(av, staging)   # avatars sit next to the script, where it looks first
+        if src_path is None and "script" not in opts:
+            raise HTTPException(400, "upload a video (talking-head) or a script (chat-skit)")
+        p = Project.create(settings().projects_dir, name, src_path, profile, fmt, copy_source=src_path is not None and _has_file(source_file), options=opts)
     except (FileExistsError, FileNotFoundError) as e:
         raise HTTPException(400, str(e)) from e
+    if src_path is not None and _has_file(source_file):
+        src_path.unlink(missing_ok=True)   # copied into the project's assets/
+    if opts.get("script"):
+        # keep script, avatars and transcript with the project
+        dst = p.root / "assets" / "upload"
+        if staging.exists():
+            shutil.copytree(staging, dst, dirs_exist_ok=True)
+            for k in ("script", "transcript"):
+                if k in opts and Path(opts[k]).parent == staging:
+                    opts[k] = str(dst / Path(opts[k]).name)
+            p.cfg["options"] = {**p.options, **opts}
+            import yaml
+            (p.root / "project.yaml").write_text(yaml.safe_dump(p.cfg, sort_keys=False))
+    elif opts.get("transcript") and Path(opts["transcript"]).parent == staging:
+        dst = p.root / "assets" / Path(opts["transcript"]).name
+        shutil.move(opts["transcript"], dst)
+        p.cfg["options"] = {**p.options, "transcript": str(dst)}
+        import yaml
+        (p.root / "project.yaml").write_text(yaml.safe_dump(p.cfg, sort_keys=False))
+    shutil.rmtree(staging, ignore_errors=True)
     return RedirectResponse(f"/p/{p.root.name}", status_code=303)
+
+
+@app.get("/assets", response_class=HTMLResponse)
+def assets_page(request: Request, msg: str = ""):
+    from ..profile import load_profile
+    libs = []
+    for name in profiles():
+        prof = load_profile(name, settings().profiles_dir)
+        for kind, attr in ASSET_KINDS.items():
+            d = prof.resolve_path(getattr(prof.audio, attr))
+            files = sorted(f.name for f in d.iterdir() if f.is_file() and not f.name.startswith(".")) if d and d.exists() else []
+            libs.append({"profile": name, "kind": kind, "dir": str(d) if d else "(not set)", "files": files})
+        d = prof.resolve_path(prof.chat.assets_dir) if prof.format == "chat-skit" else None
+        if d:
+            files = sorted(f.name for f in d.iterdir() if f.is_file()) if d.exists() else []
+            libs.append({"profile": name, "kind": "avatars", "dir": str(d), "files": files})
+    return templates.TemplateResponse(request, "assets.html", {"libs": libs, "msg": msg, "worker": worker_alive(), "profiles": profiles()})
+
+
+@app.post("/assets")
+async def assets_upload(profile: str = Form(...), kind: str = Form(...), files: list[UploadFile] = File(...)):
+    from ..profile import load_profile
+    prof = load_profile(profile, settings().profiles_dir)
+    if kind in ASSET_KINDS:
+        d = prof.resolve_path(getattr(prof.audio, ASSET_KINDS[kind]))
+    elif kind == "avatars":
+        d = prof.resolve_path(prof.chat.assets_dir)
+    else:
+        raise HTTPException(400, "kind must be music, sfx or avatars")
+    if d is None:
+        raise HTTPException(400, f"profile {profile} has no {kind} folder configured")
+    n = 0
+    for up in files:
+        if _has_file(up):
+            await save_upload(up, d)
+            n += 1
+    return RedirectResponse(f"/assets?msg=uploaded+{n}+file(s)", status_code=303)
 
 
 @app.get("/p/{slug}", response_class=HTMLResponse)
@@ -273,13 +418,28 @@ def job_log(job_id: int):
 
 @app.post("/worker/start")
 def worker_start():
-    from ..batch.worker import worker_main
-    worker_main(daemon=True)
+    if os.environ.get("AUTOEDIT_INPROCESS_WORKER"):
+        start_worker_thread()
+    else:
+        from ..batch.worker import worker_main
+        worker_main(daemon=True)
     return RedirectResponse("/jobs", status_code=303)
 
 
-def serve(host: str = "127.0.0.1", port: int = 8765) -> int:
+def serve(host: str = "127.0.0.1", port: int = 8765, with_worker: bool = False) -> int:
+    import sys
+
     import uvicorn
-    print(f"autoedit UI: http://{host}:{port}  (projects in {settings().projects_dir})")
-    uvicorn.run(app, host=host, port=port, log_level="warning")
+    local = host in ("127.0.0.1", "localhost", "::1")
+    if not local and not os.environ.get("AUTOEDIT_PASSWORD"):
+        print("refusing to listen on a public address without AUTOEDIT_PASSWORD set "
+              "(anyone could spend your API key and fill your disk)", file=sys.stderr)
+        return 2
+    settings().projects_dir.mkdir(parents=True, exist_ok=True)
+    if with_worker:
+        os.environ["AUTOEDIT_INPROCESS_WORKER"] = "1"
+        start_worker_thread()
+    print(f"autoedit UI: http://{host}:{port}  (projects in {settings().projects_dir}; "
+          f"worker {'in-process' if with_worker else 'separate'}; auth {'on' if os.environ.get('AUTOEDIT_PASSWORD') else 'off'})")
+    uvicorn.run(app, host=host, port=port, log_level="warning", proxy_headers=True, forwarded_allow_ips="*")
     return 0

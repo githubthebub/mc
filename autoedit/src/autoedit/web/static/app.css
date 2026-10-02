@@ -27,3 +27,4 @@ textarea{width:100%;font:12px ui-monospace,Menlo,monospace;background:#101113;co
 .frames{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.frames figure{margin:0;width:300px}.frames img{width:100%;border-radius:6px;border:1px solid var(--line)}.frames figcaption{font-size:12px;color:var(--muted)}
 .row{display:flex;gap:20px;align-items:flex-start}.thumb{width:320px;border-radius:8px;border:1px solid var(--line)}
 details{margin:8px 0}summary{cursor:pointer}
+fieldset{border:1px solid var(--line);border-radius:8px;margin:10px 0;max-width:560px}legend{color:var(--muted);padding:0 6px}

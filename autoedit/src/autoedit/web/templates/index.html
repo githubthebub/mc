@@ -23,12 +23,22 @@
 </tbody></table>
 
 <h2>New project</h2>
-<form method="post" action="/new" class="newform">
+<form method="post" action="/new" class="newform" enctype="multipart/form-data">
   <label>Name <input name="name" required placeholder="My video"></label>
-  <label>Source video (path on this machine) <input name="source" placeholder="/path/to/footage.mp4"></label>
-  <label>or chat-skit script <input name="script" placeholder="/path/to/episode.yaml"></label>
-  <label>Transcript JSON (optional) <input name="transcript" placeholder="/path/to/words.json"></label>
   <label>Profile <select name="profile">{% for pr in profiles %}<option value="{{ pr }}">{{ pr }}</option>{% endfor %}</select></label>
-  <button>Create</button>
+  <fieldset><legend>Talking head: upload footage</legend>
+    <label>Video file <input type="file" name="source_file" accept="video/*"></label>
+    <label>Transcript JSON (optional, skips transcription) <input type="file" name="transcript_file" accept=".json"></label>
+  </fieldset>
+  <fieldset><legend>Chat skit: upload a script</legend>
+    <label>Script (.yaml) <input type="file" name="script_file" accept=".yaml,.yml"></label>
+    <label>Avatars (images named as in the script) <input type="file" name="avatar_files" accept="image/*" multiple></label>
+  </fieldset>
+  <details><summary>Or use paths on the server</summary>
+    <label>Source video path <input name="source" placeholder="/data/inbox/footage.mp4"></label>
+    <label>Script path <input name="script" placeholder="/data/inbox/episode.yaml"></label>
+    <label>Transcript path <input name="transcript"></label>
+  </details>
+  <button class="primary">Create project</button> <span class="muted small">Large videos take a while to upload; keep this tab open.</span>
 </form>
 {% endblock %}

@@ -153,7 +153,7 @@ def cmd_jobs(a: argparse.Namespace) -> int:
 
 def cmd_serve(a: argparse.Namespace) -> int:
     from .web.app import serve
-    return serve(a.host, a.port)
+    return serve(a.host, a.port, with_worker=a.with_worker)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -234,6 +234,7 @@ def main(argv: list[str] | None = None) -> int:
     sv = sub.add_parser("serve", help="local web UI")
     sv.add_argument("--host", default="127.0.0.1")
     sv.add_argument("--port", type=int, default=8765)
+    sv.add_argument("--with-worker", action="store_true", help="also run the job worker inside the server process")
     sv.set_defaults(fn=cmd_serve)
 
     a = ap.parse_args(argv)

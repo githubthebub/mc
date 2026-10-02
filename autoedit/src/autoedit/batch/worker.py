@@ -61,8 +61,10 @@ def worker_loop(queue: JobQueue, once: bool = False) -> int:
     def _sig(*_: object) -> None:
         stop["flag"] = True
 
-    signal.signal(signal.SIGTERM, _sig)
-    signal.signal(signal.SIGINT, _sig)
+    import threading
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGTERM, _sig)
+        signal.signal(signal.SIGINT, _sig)
     pid = os.getpid()
     n = queue.requeue_orphans()
     if n:

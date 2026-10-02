@@ -7,3 +7,4 @@ autoedit/src/*.egg-info/
 # gradle
 .gradle/
 build/
+autoedit/deploy/_proxy_ca.crt
