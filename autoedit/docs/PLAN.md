@@ -1,6 +1,6 @@
 # autoedit: architecture and milestone plan
 
-Status: **proposal, awaiting approval. No code has been written.**
+Status: **implemented through milestone 5** (see "Implementation notes" at the end for what differs from this plan).
 
 autoedit turns raw talking-head footage, or a chat-skit script, into a
 publish-ready long-form YouTube video plus Shorts, by applying the
@@ -516,3 +516,23 @@ approve and re-render, QA viewer.
   fast if the TTF path is missing rather than silently using DejaVu.
 - **Long renders.** Every stage is resumable from its artifacts, and the
   worker survives the shell.
+
+## Implementation notes (what differs from the plan above)
+
+- **Stage order** is ingest, transcribe, analyze, plan, render, shorts, package, verify. Package runs before
+  verify so the QA report covers the thumbnail and the packaging ledger.
+- **Anchor pads** up to 1 s are cosmetic and applied in output time inside one piece (a padded caption end
+  never lands in a segment that moved elsewhere after a hook reorder); longer pads are structural and resolve
+  in source time. Fadeouts and swells anchor by source time, clamped to their music section.
+- **Music sections** anchor to segments in output order, so a hook moved to the front stays covered and a
+  chapter card belongs to the section that follows it.
+- **Verify** measures music automation on a pre-duck stem (`stems/music_raw.wav`) and checks caption ink
+  against the face box by rendering the subtitles alone; the limiter runs at 4x oversampling with a 1 dB
+  margin under the true-peak target, and the mix makes up to three gain passes on peaky music-only mixes.
+- **chat-skit** composes the episode into the source video; the newest message is the focus track, so the
+  talking-head renderer's face-anchored punch-ins and QA apply unchanged. Shorts for chat-skit (a native
+  vertical chat layout) are reported as not executed rather than produced as unreadable 9:16 slices.
+- **Soundscape atmosphere** beds under stills and B-roll are not implemented and are reported as not executed.
+- **No transcriber available** (no whisper model and no pocketsphinx) degrades to a dead-air-only edit with the
+  reason in the QA report instead of failing the batch job.
+- **Planner effort** is not passed to the API yet (the structured-output call uses the model default).
