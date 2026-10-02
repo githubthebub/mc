@@ -1,0 +1,68 @@
+# "frogbertsaid": chat-skit episodes in a dark Discord-style UI, entertainment experience.
+name: frogbertsaid
+format: chat-skit
+experience: entertainment
+handle: "@FrogBertSaid"
+
+fonts:
+  primary: null          # a TTF close to Discord's UI font (e.g. a geometric sans); DejaVu when missing
+
+colors:
+  bg: "#313338"
+  text: "#DBDEE1"
+  accent: "#5865F2"      # blurple
+  muted: "#949BA4"
+
+captions:
+  style: keyword
+  max_words: 3
+  size_px: 60
+  position: upper
+
+cards:
+  style: flat
+  glow: false
+  duration: 2.0
+
+chat:
+  chat_bg: "#313338"
+  panel_bg: "#2B2D31"
+  text: "#DBDEE1"
+  timestamp: "#949BA4"
+  highlight: "#5865F2"
+  card_bg: "#3A3C41"
+  card_text: "#DBDEE1"
+  message_size_px: 52
+  name_size_px: 46
+  card_size_px: 84
+  avatar_px: 88
+  typing_dots_s: 1.2
+  highlight_fade_s: 1.5
+  punch_scale: 1.18
+  assets_dir: ~/autoedit-assets/frogbertsaid/avatars
+
+audio:
+  music_dir: ~/autoedit-assets/frogbertsaid/music
+  sfx_dir: ~/autoedit-assets/frogbertsaid/sfx
+  music_rel_db: -12
+  duck_ratio: 6
+  lufs: -16            # music-led episodes: -16 keeps the beds dynamic (the skill allows -16 for a quieter feel)
+  true_peak: -1.5
+  voice_clean: "off"
+
+end_screen:
+  seconds: 10
+  reserve_zone: right-third
+  plate: true
+  text: "Next episode"
+
+thumbnail:
+  style: text-only
+  text_max_words: 3
+  mood_color: cool
+
+shorts:
+  count: 3
+  min_s: 15
+  max_s: 60
+  context_label: "@FrogBertSaid"

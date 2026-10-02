@@ -1,0 +1,43 @@
+"""The catalog of skill techniques the pipeline tracks. Every id ends up in the QA report
+as executed, degraded, not_executed, or planned, with a reason."""
+
+from __future__ import annotations
+
+TECHNIQUES: dict[str, str] = {
+    "experience_fit": "Editing style set by the viewer experience (hangout / informative / entertainment)",
+    "transcript_words": "Word-level transcript driving every word-dependent decision",
+    "story_pass": "Story pass table (green/purple, conflict, mood, litmus gaps, action)",
+    "hook_proof_early": "Hook shows the most extraordinary thing early (proof, not promise)",
+    "dead_air_removal": "Empty pauses removed per the experience preset",
+    "litmus_voiceover": "Voiceover lines written for clarity gaps (what / why / what could go wrong)",
+    "voiceover_mixed": "Recorded voiceover lines mixed in at their slots",
+    "montage_compression": "Non-conflict stretches compressed into montages that keep progression points",
+    "beats_shut_up_show_it": "Deliberate beats after key phrases, filled with a visual and SFX",
+    "emphasis_zooms": "Abrupt emphasis zooms on important lines, anchored to the face",
+    "punch_ins": "Alternating punch-ins on jump cuts, anchored to the face",
+    "keyword_captions": "Captions only on key words, three words or fewer",
+    "chapter_cards": "Chapter / title cards that signpost progress",
+    "graphics_motion_in": "Graphics move into frame or pop with a shutter/pop sound",
+    "guided_attention_stills": "Stills become guided-attention clips (push-in, darken, tint, mark)",
+    "broll_every_noun": "B-roll wherever the words describe something showable",
+    "eye_trace_continuity": "Focal point kept in the same screen area across cuts",
+    "music_per_section": "One music track per emotional section, matched to the content",
+    "music_dropouts": "Hard music dropouts on key lines, punchlines and takeaways",
+    "music_fadeouts": "Music fades out over about 20 s as sections end",
+    "music_swells": "Music swells into payoffs",
+    "music_pickup_sync": "A song pickup landed on the biggest topic shift",
+    "music_ducking": "Music ducks under the voice",
+    "music_relative_gain": "Music gain set relative to the voice after measuring each track",
+    "soundscape_atmosphere": "Atmosphere under stills and B-roll; a sound for every movement except the host",
+    "sfx_variation": "No identical SFX twice in a row",
+    "audio_cues": "Risers end on the moment, hits on the word; risers only when something follows",
+    "voice_clean": "Voice cleaned (highpass, denoise, gentle compression) when needed",
+    "loudness_target": "Static gain to the profile target plus a true-peak limiter (no loudnorm second pass)",
+    "licensed_audio": "Licensed music/SFX from the profile library (not synth placeholders)",
+    "thumbnail_spotlight": "Thumbnail built around one spotlight element with text clear of the face",
+    "title_driving_question": "Title written as the driving question, key words first",
+    "end_screen_handoff": "End screen hands off to the next video; no outro",
+    "shorts_face_tracked": "Shorts cropped by face tracking, never a fixed center crop",
+    "shorts_word_captions": "Shorts carry full word-by-word captions in the safe zone",
+    "shorts_loop_ending": "Shorts end loop-friendly with no fade to silence",
+}

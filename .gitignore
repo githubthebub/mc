@@ -1,0 +1,10 @@
+# autoedit
+autoedit/projects/
+autoedit/**/__pycache__/
+autoedit/.pytest_cache/
+autoedit/src/*.egg-info/
+*.pyc
+# gradle
+.gradle/
+build/
+autoedit/deploy/_proxy_ca.crt

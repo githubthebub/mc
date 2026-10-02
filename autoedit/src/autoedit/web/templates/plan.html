@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} · plan{% endblock %}
+{% block content %}
+<h1><a href="/p/{{ p.slug }}">{{ p.name }}</a> · plan review
+  {% if p.approved %}<span class="tag ok">approved</span>{% endif %}{% if hand_edited %}<span class="tag warn">EDL hand-edited</span>{% endif %}</h1>
+{% if msg == 'approved' %}<p class="ok">Approved. Queue <strong>render</strong> on the project page.</p>{% elif msg == 'errors' %}<p class="err">The EDL has errors; fix them below.</p>{% elif msg == 'saved' %}<p class="ok">EDL saved (approval reset).</p>{% endif %}
+
+{% if p.has_preview %}
+<section>
+<video id="preview" controls preload="metadata" src="/p/{{ p.slug }}/file/04_plan/preview.mp4"></video>
+<div class="timeline" id="timeline" data-dur="{{ out_dur }}">
+  {% for m in markers %}<div class="mk" style="left:{{ (m.t0 / out_dur * 100) if out_dur else 0 }}%;width:{{ (((m.t1 - m.t0) / out_dur * 100) if out_dur else 0) | round(3) }}%;background:{{ m.color }}" data-t="{{ m.t0 }}" title="{{ m.kind }} {{ m.id }} {{ m.label }}"></div>{% endfor %}
+</div>
+<p class="legend"><span style="--c:#FFD400">captions</span><span style="--c:#3CC8FF">zooms</span><span style="--c:#57F287">beats</span><span style="--c:#FFFFFF">cards</span><span style="--c:#FF4E2A">dropouts</span><span style="--c:#B57BFF">fadeouts</span><span style="--c:#FF9F1C">swells</span><span style="--c:#8899AA">music</span> · click a marker to seek</p>
+</section>
+{% endif %}
+
+<section class="cols">
+<div class="summary">{{ summary_html | safe }}</div>
+<div>
+<h2>EDL</h2>
+{% if problems %}<ul class="problems">{% for x in problems %}<li class="{{ x.level }}">{{ x.level }}: {{ x.msg }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" action="/p/{{ p.slug }}/edl">
+  <textarea name="edl_text" rows="28" spellcheck="false">{{ edl_text }}</textarea>
+  <p><button>Save EDL</button></p>
+</form>
+<form method="post" action="/p/{{ p.slug }}/approve"><button class="primary">Approve for render</button></form>
+<form method="post" action="/p/{{ p.slug }}/enqueue"><input type="hidden" name="command" value="plan"><input type="hidden" name="force" value="1"><button class="secondary">Re-plan</button></form>
+<form method="post" action="/p/{{ p.slug }}/enqueue"><input type="hidden" name="command" value="render"><button class="secondary">Queue render</button></form>
+</div>
+</section>
+{% endblock %}
+{% block scripts %}<script>timelineSeek();</script>{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}assets · autoedit{% endblock %}
+{% block content %}
+<h1>Music, SFX and avatars</h1>
+{% if msg %}<p class="ok">{{ msg }}</p>{% endif %}
+<p class="muted">Licensed files you upload here replace the synth placeholders. Music files are matched to moods by
+file name (e.g. <span class="mono">tense-drone-01.mp3</span>, <span class="mono">playful_bounce.wav</span>) or by a
+<span class="mono">library.yaml</span> in the folder. SFX are matched by kind in the name: whoosh, pop, riser, hit, shutter, click.</p>
+<form method="post" action="/assets" enctype="multipart/form-data" class="newform">
+  <label>Profile <select name="profile">{% for pr in profiles %}<option value="{{ pr }}">{{ pr }}</option>{% endfor %}</select></label>
+  <label>Kind <select name="kind"><option value="music">music</option><option value="sfx">sfx</option><option value="avatars">avatars (chat-skit)</option></select></label>
+  <label>Files <input type="file" name="files" multiple required></label>
+  <button class="primary">Upload</button>
+</form>
+<table class="grid">
+<thead><tr><th>Profile</th><th>Kind</th><th>Folder</th><th>Files</th></tr></thead>
+{% for l in libs %}<tr><td>{{ l.profile }}</td><td>{{ l.kind }}</td><td class="mono small">{{ l.dir }}</td>
+<td>{% if l.files %}{{ l.files | length }}: <span class="small">{{ l.files[:8] | join(', ') }}{% if l.files | length > 8 %} …{% endif %}</span>{% else %}<span class="muted">empty (placeholders used)</span>{% endif %}</td></tr>{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,22 @@
+title: "FrogBert vs the group chat"
+server: "The Pond"
+channel: general
+characters:
+  frog: {name: FrogBert, avatar: frog.png, color: "#57F287"}
+  dan:  {name: Dan, avatar: dan.png, color: "#F2F3F5"}
+  mia:  {name: Mia, avatar: mia.png, color: "#EB459E"}
+scenes:
+  - card: "3 AM. The group chat wakes up."
+    dur: 2.5
+  - msg: {from: dan, text: "who's awake", typing: 1.2, time: "3:02 AM"}
+  - msg: {from: frog, text: "I never sleep.", punch: true}
+  - msg: {from: mia, text: "frog why are you like this", typing: 1.6}
+  - msg: {from: frog, text: "Because somebody has to guard the pond.", typing: 1.8}
+  - beat: 1.0
+  - msg: {from: dan, text: "guard it from WHAT", typing: 1.0}
+  - msg: {from: frog, text: "Ducks.", punch: true, hold: 1.2}
+  - card: "He has never seen a duck."
+    dur: 2.5
+  - msg: {from: mia, text: "I'm going back to sleep.", typing: 1.4}
+  - msg: {from: frog, text: "Sleep is a duck's idea.", punch: true, hold: 1.5}
+  - sfx: hit

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} · QA{% endblock %}
+{% block content %}
+<h1><a href="/p/{{ p.slug }}">{{ p.name }}</a> · QA report {% if report %}<span class="tag {{ report.overall }}">{{ report.overall }}</span>{% endif %}</h1>
+{% if not report %}<p class="muted">No QA report yet. Queue <strong>verify</strong>.</p>{% else %}
+{% if report.hand_edited_edl %}<p class="warn">The EDL was hand-edited after planning.</p>{% endif %}
+{% for name, out in report.outputs.items() %}
+<section class="qa-out">
+<h2>{{ name }} <span class="tag {{ out.overall }}">{{ out.overall }}</span> <small class="muted">{{ out.duration | round(2) }} s · {{ out.size[0] }}x{{ out.size[1] }}</small></h2>
+<table class="grid">
+<thead><tr><th>Check</th><th>Status</th><th>Summary</th><th>Target</th></tr></thead>
+{% for c in out.checks %}<tr><td class="mono">{{ c.id }}</td><td><span class="tag {{ c.status }}">{{ c.status }}</span></td><td>{{ c.summary }}</td><td class="muted small">{{ c.target if c.target is not none else '' }}</td></tr>{% endfor %}
+</table>
+<div class="frames">
+{% for c in out.checks %}{% for f in c.frames %}<figure><img src="/p/{{ p.slug }}/file/06_verify/{{ f }}" loading="lazy"><figcaption>{{ c.id }}</figcaption></figure>{% endfor %}{% endfor %}
+</div>
+<details><summary>Executed techniques ({{ out.executed | length }})</summary><ul>{% for e in out.executed %}<li><strong>{{ e.id }}</strong> {{ e.reason or '' }}</li>{% endfor %}</ul></details>
+<details open><summary>NOT EXECUTED ({{ out.not_executed | length }})</summary>
+<ul>{% for n in out.not_executed %}<li><strong>{{ n.id }}</strong> <span class="tag {{ n.status }}">{{ n.status }}</span> {{ n.description }} — <em>{{ n.reason }}</em></li>{% endfor %}</ul></details>
+</section>
+{% endfor %}
+{% endif %}
+{% endblock %}

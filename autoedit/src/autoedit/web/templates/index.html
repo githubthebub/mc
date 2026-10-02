@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}autoedit · projects{% endblock %}
+{% block content %}
+<h1>Projects <small class="muted">{{ projects_dir }}</small></h1>
+<table class="grid">
+<thead><tr><th>Project</th><th>Profile</th><th>Format</th><th>Stages</th><th>QA</th><th></th></tr></thead>
+<tbody>
+{% for p in projects %}
+<tr>
+  <td><a href="/p/{{ p.slug }}"><strong>{{ p.name }}</strong></a>{% if p.approved %} <span class="tag ok">approved</span>{% endif %}</td>
+  <td>{{ p.profile }}</td><td>{{ p.format }}</td>
+  <td class="stages">{% for s, st in p.stages.items() %}<span class="st {{ st }}" title="{{ s }}: {{ st }}">{{ s[:3] }}</span>{% endfor %}</td>
+  <td>{% if p.qa %}<span class="tag {{ p.qa.overall }}">{{ p.qa.overall }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+  <td class="actions">
+    <form method="post" action="/p/{{ p.slug }}/enqueue"><input type="hidden" name="command" value="run"><button>run</button></form>
+    {% if p.has_plan and not p.approved %}<a class="btn" href="/p/{{ p.slug }}/plan">review</a>{% endif %}
+    {% if p.qa %}<a class="btn" href="/p/{{ p.slug }}/qa">QA</a>{% endif %}
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="6" class="muted">No projects yet.</td></tr>
+{% endfor %}
+</tbody></table>
+
+<h2>New project</h2>
+<form method="post" action="/new" class="newform" enctype="multipart/form-data">
+  <label>Name <input name="name" required placeholder="My video"></label>
+  <label>Profile <select name="profile">{% for pr in profiles %}<option value="{{ pr }}">{{ pr }}</option>{% endfor %}</select></label>
+  <fieldset><legend>Talking head: upload footage</legend>
+    <label>Video file <input type="file" name="source_file" accept="video/*"></label>
+    <label>Transcript JSON (optional, skips transcription) <input type="file" name="transcript_file" accept=".json"></label>
+  </fieldset>
+  <fieldset><legend>Chat skit: upload a script</legend>
+    <label>Script (.yaml) <input type="file" name="script_file" accept=".yaml,.yml"></label>
+    <label>Avatars (images named as in the script) <input type="file" name="avatar_files" accept="image/*" multiple></label>
+  </fieldset>
+  <details><summary>Or use paths on the server</summary>
+    <label>Source video path <input name="source" placeholder="/data/inbox/footage.mp4"></label>
+    <label>Script path <input name="script" placeholder="/data/inbox/episode.yaml"></label>
+    <label>Transcript path <input name="transcript"></label>
+  </details>
+  <button class="primary">Create project</button> <span class="muted small">Large videos take a while to upload; keep this tab open.</span>
+</form>
+{% endblock %}

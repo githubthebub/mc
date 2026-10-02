@@ -1,0 +1,45 @@
+{
+ "meta": {
+  "model": "fixture"
+ },
+ "parsed": {
+  "candidates": [
+   {
+    "id": "a",
+    "hook_sentence": 1,
+    "from_sentence": 1,
+    "to_sentence": 5,
+    "hook_strength": 8.5,
+    "self_contained": 7.0,
+    "payoff": 7.0,
+    "title": "The one mistake killing your videos",
+    "context_label": "Why viewers leave",
+    "reason": "opens on the mistake, ends on the diagnosis"
+   },
+   {
+    "id": "b",
+    "hook_sentence": 7,
+    "from_sentence": 7,
+    "to_sentence": 13,
+    "hook_strength": 8.0,
+    "self_contained": 8.0,
+    "payoff": 8.5,
+    "title": "Proof first, promise second",
+    "context_label": "Retention fix",
+    "reason": "a rule, a number, and the silence trick"
+   },
+   {
+    "id": "c",
+    "hook_sentence": 0,
+    "from_sentence": 0,
+    "to_sentence": 6,
+    "hook_strength": 6.0,
+    "self_contained": 6.0,
+    "payoff": 5.0,
+    "title": "I almost deleted this video",
+    "context_label": "Editing lesson",
+    "reason": "weaker: the payoff is far away"
+   }
+  ]
+ }
+}
