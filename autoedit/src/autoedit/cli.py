@@ -153,13 +153,13 @@ def main(argv: list[str] | None = None) -> int:
 
     r = sub.add_parser("run", help="run the pipeline (stops at review unless --yolo)")
     r.add_argument("project")
-    r.add_argument("--upto", default="package", choices=STAGES)
+    r.add_argument("--upto", default="verify", choices=STAGES)
     r.add_argument("--force", action="store_true", help="re-run stages that are already done")
     r.add_argument("--yolo", action="store_true", help="skip the human review gate")
     r.add_argument("--llm", default="auto", choices=["auto", "off", "replay"], help="plan with Claude, code only, or replay saved responses")
     r.set_defaults(fn=cmd_run)
 
-    for st in ("ingest", "transcribe", "analyze", "plan", "render", "verify", "package"):
+    for st in ("ingest", "transcribe", "analyze", "plan", "render", "package", "verify"):
         sp = sub.add_parser(st, help=f"run the {st} stage")
         sp.add_argument("project")
         sp.add_argument("--deps", action="store_true", help="run earlier stages first if needed")

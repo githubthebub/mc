@@ -14,7 +14,7 @@ import yaml
 
 from .log import StageLog
 
-STAGES = ("ingest", "transcribe", "analyze", "plan", "render", "verify", "package")
+STAGES = ("ingest", "transcribe", "analyze", "plan", "render", "package", "verify")
 STAGE_DIRS = {"ingest": "01_ingest", "transcribe": "02_transcribe", "analyze": "03_analyze", "plan": "04_plan",
               "render": "05_render", "verify": "06_verify", "package": "07_package"}
 

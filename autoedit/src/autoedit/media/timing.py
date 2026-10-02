@@ -123,6 +123,20 @@ class TimingMap:
                 return s.to_src(t_out)
         return None
 
+    def to_out_prev(self, t_src: float) -> float:
+        """Output time of a source time; a cut time snaps back to the end of the last kept moment before it."""
+        t = self.to_out(t_src)
+        if t is not None:
+            return t
+        best: float | None = None
+        for s in self.source_spans():
+            if s.src_out is not None and s.src_out <= t_src:
+                cand = s.out_out
+                best = cand if best is None else max(best, cand)
+        if best is not None:
+            return best
+        return 0.0
+
     def span_at_out(self, t_out: float) -> Span | None:
         for s in self.spans:
             if s.contains_out(t_out):

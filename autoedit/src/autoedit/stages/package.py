@@ -155,7 +155,8 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
                                "note": "add the end-screen element in YouTube Studio inside this window; captions avoid the reserved zone"}}
         # thumbnail
         spec = edl.thumbnail
-        frame, face, t_used = pick_thumbnail_frame(final, track, tm, out, spec.frame_src_t if spec else None)
+        clean = next((work / n for n in ("graphics_timeline.mkv", "timeline.mkv") if (work / n).exists()), final)
+        frame, face, t_used = pick_thumbnail_frame(clean, track, tm, out, spec.frame_src_t if spec else None)
         text = (spec.text if spec else None) or (title.split(":")[0] if len(title.split()) <= 3 else None)
         placement = compose_thumbnail(frame, face, text, profile, out / "thumbnail.png")
         placement["frame_out_t"] = t_used

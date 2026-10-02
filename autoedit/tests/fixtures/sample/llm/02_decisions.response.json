@@ -1,0 +1,103 @@
+{
+ "meta": {
+  "model": "fixture"
+ },
+ "parsed": {
+  "captions": [
+   {
+    "word_from": 10,
+    "word_to": 11,
+    "words": [
+     "one",
+     "mistake"
+    ],
+    "emphasis": 1,
+    "reason": "the premise in two words"
+   },
+   {
+    "word_from": 52,
+    "word_to": 53,
+    "words": [
+     "Proof",
+     "first"
+    ],
+    "emphasis": 0,
+    "reason": "the takeaway"
+   },
+   {
+    "word_from": 68,
+    "word_to": 69,
+    "words": [
+     "twenty",
+     "percent"
+    ],
+    "emphasis": 0,
+    "reason": "the number is the proof"
+   },
+   {
+    "word_from": 83,
+    "word_to": 83,
+    "words": [
+     "Silence"
+    ],
+    "emphasis": 0,
+    "reason": "the punchline word"
+   }
+  ],
+  "dropouts": [
+   {
+    "sentence": 12,
+    "reason": "punchline"
+   },
+   {
+    "sentence": 7,
+    "reason": "takeaway"
+   }
+  ],
+  "fadeouts": [
+   {
+    "ends_at_sentence": 5,
+    "reason": "the problem section wraps up"
+   }
+  ],
+  "swells": [
+   {
+    "into_sentence": 7,
+    "db": 6.0,
+    "reason": "build into the rule, then the dropout isolates it"
+   }
+  ],
+  "zooms": [
+   {
+    "word_from": 16,
+    "word_to": 18,
+    "scale": 1.3,
+    "reason": "'Here's the thing' signals the takeaway"
+   },
+   {
+    "word_from": 52,
+    "word_to": 55,
+    "scale": 1.25,
+    "reason": "the rule"
+   }
+  ],
+  "sfx": [
+   {
+    "word": 10,
+    "kind": "riser",
+    "align": "end",
+    "reason": "ends as 'one mistake' lands"
+   },
+   {
+    "word": 11,
+    "kind": "hit",
+    "align": "start",
+    "reason": "on the word 'mistake'"
+   }
+  ],
+  "notes": [
+   "The thumbnail text should be rechecked by the creator at mobile size.",
+   "No B-roll was provided; every noun stays on the A-roll."
+  ]
+ }
+}

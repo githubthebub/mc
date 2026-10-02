@@ -1,0 +1,164 @@
+{
+ "meta": {
+  "model": "fixture",
+  "note": "hand-written planner response for the synthetic sample"
+ },
+ "parsed": {
+  "experience_fit": "Viewers come to learn one concrete fix per video (informative). Remove empty pauses, keep filled beats, signpost the two fixes, and let the result lead.",
+  "story_pass": [
+   {
+    "time": "S9 (0:29-0:31) moved to front",
+    "what_happens": "The result: retention up twenty percent",
+    "color": "purple",
+    "conflict": "none",
+    "mood": "triumphant",
+    "litmus_gaps": [],
+    "action": "reorder: cold open on the proof"
+   },
+   {
+    "time": "S0-S1 (0:00-0:07)",
+    "what_happens": "Almost deleted the video, then found the one mistake",
+    "color": "green",
+    "conflict": "the video nearly died",
+    "mood": "tense",
+    "litmus_gaps": [],
+    "action": "keep; riser into 'one mistake', hit on the word"
+   },
+   {
+    "time": "S2-S5 (0:07-0:19)",
+    "what_happens": "Why videos lose a third of viewers: the intro breaks the thumbnail's promise",
+    "color": "green",
+    "conflict": "viewers leaving",
+    "mood": "tense",
+    "litmus_gaps": [
+     "why it matters to THIS creator is implied, not said"
+    ],
+    "action": "cut S4 (restates S3); beat after 'promised'; zoom on 'Here's the thing'"
+   },
+   {
+    "time": "S6-S8 (0:21-0:28)",
+    "what_happens": "Fix 1: rebuilt the first ten seconds, proof before explanation",
+    "color": "purple",
+    "conflict": "none",
+    "mood": "build",
+    "litmus_gaps": [
+     "what could go wrong when you cut the intro"
+    ],
+    "action": "chapter card; voiceover on the risk; swell toward the result"
+   },
+   {
+    "time": "S10-S13 (0:33-0:43)",
+    "what_happens": "Fix 2: cut the music on the key line; silence makes people listen; try it",
+    "color": "purple",
+    "conflict": "none",
+    "mood": "playful",
+    "litmus_gaps": [],
+    "action": "chapter card; dropout on the punchline; long beat after 'listen'; end on value"
+   }
+  ],
+  "hook": {
+   "hook_sentences": [
+    9
+   ],
+   "reorder_to_front": true,
+   "premise_restated": true,
+   "rationale": "The retention jump is the most extraordinary thing in the footage: show the number first (proof), then the mistake that nearly killed the video."
+  },
+  "litmus_gaps": [
+   {
+    "after_sentence": 6,
+    "gap": "what_could_go_wrong",
+    "line": "If you cut the intro too hard, people have no idea what the video is about.",
+    "reason": "The viewer should know the risk before the fix is shown working."
+   }
+  ],
+  "cut_sentences": [
+   {
+    "sentence": 4,
+    "reason": "repeats S3's point without adding conflict"
+   }
+  ],
+  "montages": [],
+  "beats": [
+   {
+    "after_word": 44,
+    "dur": 1.2,
+    "fill": "caption",
+    "text": "the promise",
+    "sfx": "pop",
+    "reason": "let the diagnosis land"
+   },
+   {
+    "after_word": 86,
+    "dur": 2.0,
+    "fill": "none",
+    "text": null,
+    "sfx": "none",
+    "reason": "emotional break: let the music carry 'silence makes people listen'"
+   }
+  ],
+  "protect_pauses": [
+   {
+    "after_sentence": 9,
+    "reason": "breathing room after the payoff"
+   }
+  ],
+  "music": [
+   {
+    "from_sentence": 0,
+    "to_sentence": 5,
+    "mood": "tense",
+    "pickup_at_sentence": null,
+    "reason": "the problem"
+   },
+   {
+    "from_sentence": 6,
+    "to_sentence": 9,
+    "mood": "build",
+    "pickup_at_sentence": 6,
+    "reason": "the fix; the pickup marks problem -> solution"
+   },
+   {
+    "from_sentence": 10,
+    "to_sentence": 13,
+    "mood": "playful",
+    "pickup_at_sentence": null,
+    "reason": "second fix, lighter"
+   }
+  ],
+  "chapters": [
+   {
+    "at_sentence": 0,
+    "title": "The mistake",
+    "number": null,
+    "card": false
+   },
+   {
+    "at_sentence": 6,
+    "title": "Fix 1: Proof first",
+    "number": 1,
+    "card": true
+   },
+   {
+    "at_sentence": 10,
+    "title": "Fix 2: Sound",
+    "number": 2,
+    "card": true
+   }
+  ],
+  "title_options": [
+   "The one mistake killing your videos",
+   "Why viewers leave in 30 seconds",
+   "Proof first, promise second"
+  ],
+  "thumbnail_ideas": [
+   {
+    "spotlight": "face",
+    "text": "ONE MISTAKE",
+    "idea": "Shocked face, warm wash, 'ONE MISTAKE' clear of the face",
+    "mood_color": "warm"
+   }
+  ],
+  "biggest_risk": "A diehard viewer has heard 'hook in the first 30 seconds' before; the specific before/after number and the music dropout trick are what is new, so they must land early."
+ }
+}

@@ -215,7 +215,10 @@ def render_graphics(edl: EDL, tr: Transcript | None, tm: TimingMap, pieces: list
     ass_path: Path | None = None
     if doc.events:
         ass_path = doc.write(work / f"{name}.ass")
-        run_ffmpeg(["-i", str(timeline), "-vf", ass_filter(ass_path, font.path.parent), "-c:a", "copy",
+        vf = ass_filter(ass_path, font.path.parent)
+        if extra_doc is not None:   # preview: burn the output timecode
+            vf += f",drawtext=text='out %{{pts\\:hms}}':x=w-tw-8:y=8:fontsize={max(12, int(out_size[1] * 0.04))}:fontcolor=white:box=1:boxcolor=black@0.5"
+        run_ffmpeg(["-i", str(timeline), "-vf", vf, "-c:a", "copy",
                     *video_encode_args(crf, preset), str(out)],
                    total_duration=tm.out_duration, on_progress=(lambda f: log.progress(f, "captions")) if log else None)
     else:

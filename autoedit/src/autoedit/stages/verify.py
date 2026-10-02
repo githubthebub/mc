@@ -156,8 +156,9 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
         for s in resolved["swells"]:
             a, b = s["out_in"], s["out_out"]
             q = max(0.5, (b - a) / 4)
-            head, tail = rms(a, a + q), rms(b - q, b)
-            rise = (np.mean(tail) - np.mean(head)) if head and tail else 0.0
+            head, tail = rms(a, a + q), rms(a + (b - a) / 2, b)
+            # peak of the second half against the opening quarter (a dropout right at the payoff must not hide the swell)
+            rise = (max(tail) - np.mean(head)) if head and tail else 0.0
             good = rise >= s["db"] * 0.4
             ok &= good
             det["swells"].append({"id": s["id"], "rise_db": round(float(rise), 1), "ok": good})
@@ -284,6 +285,27 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
                              [str((frames_dir / "font_check.png").relative_to(out_dir))]))
     except Exception as e:  # noqa: BLE001
         checks.append(_check("font_size", "warn", f"font check failed: {e!r}"))
+
+    # ---- thumbnail at real sizes, text clear of the face ----
+    pkg = work.parent / "07_package" / "metadata.json"
+    if label == "long" and pkg.exists():
+        meta = json.loads(pkg.read_text())
+        th = meta.get("thumbnail") or {}
+        sheet = th.get("sheet")
+        metrics = th.get("metrics") or {}
+        ok_t = not th.get("overlaps_face") and bool(th.get("file")) and Path(th["file"]).exists()
+        low_contrast = metrics.get("brightness_contrast", 99) < 40
+        frames = []
+        if sheet and Path(sheet).exists():
+            dst = frames_dir / "thumb_check.png"
+            dst.write_bytes(Path(sheet).read_bytes())
+            frames.append(str(dst.relative_to(out_dir)))
+        checks.append(_check("thumbnail", ("pass" if ok_t else "fail") if not low_contrast else "warn",
+                             f"text {'clear of' if not th.get('overlaps_face') else 'ON'} the face; contrast {metrics.get('brightness_contrast')}, "
+                             f"colorfulness {metrics.get('colorfulness')}, clutter {metrics.get('clutter_edge_density')}%",
+                             {"text": th.get("text"), **metrics}, "text never covers the face; brightness contrast >= 40", frames))
+    elif label == "long":
+        checks.append(_check("thumbnail", "not_executed", "package stage has not run"))
 
     # ---- ledger / NOT EXECUTED ----
     not_exec = []

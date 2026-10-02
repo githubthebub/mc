@@ -43,7 +43,7 @@ def resolve_src(a: Anchor, tr: Transcript | None, edl: EDL) -> float | None:
     return None
 
 
-def resolve(a: Anchor, tr: Transcript | None, edl: EDL, tm: TimingMap) -> Resolved:
+def resolve(a: Anchor, tr: Transcript | None, edl: EDL, tm: TimingMap, is_end: bool = False) -> Resolved:
     """Resolve to output time (and source time when there is one)."""
     if a.out is not None:
         return Resolved(tm.to_src(a.out + a.pad), a.out + a.pad)
@@ -51,22 +51,41 @@ def resolve(a: Anchor, tr: Transcript | None, edl: EDL, tm: TimingMap) -> Resolv
         spans = spans_of_segment(tm, a.segment)
         if not spans:
             raise AnchorError(f"segment {a.segment} has no rendered span")
-        out = (spans[-1].out_out if a.edge == "end" else spans[0].out_in) + a.pad
+        if a.edge == "end":
+            out = spans[-1].out_out + a.pad
+        else:
+            # a card inserted right before this segment belongs to it (music covers the card)
+            first = spans[0]
+            idx = tm.spans.index(first)
+            while idx > 0 and tm.spans[idx - 1].kind == "card":
+                idx -= 1
+            out = tm.spans[idx].out_in + a.pad
         return Resolved(resolve_src(a, tr, edl), out)
-    src = resolve_src(a, tr, edl)
+    # resolve the unpadded moment first: the pad is a cosmetic offset applied in OUTPUT time and
+    # never crosses into another piece (a padded end must not land in the next segment, which may
+    # sit elsewhere in the output after a restructure)
+    bare = a.model_copy(update={"pad": 0.0})
+    src = resolve_src(bare, tr, edl)
     assert src is not None
     out = tm.to_out(src)
     if out is None:
-        # the anchored moment was cut (dead air or a trimmed stretch): snap to the next kept moment
-        out = tm.to_out_nearest(src)
-    return Resolved(src, out)
+        # the anchored moment was cut (dead air or a trimmed stretch): a start snaps forward to the
+        # next kept moment, an end snaps back to the previous one
+        out = tm.to_out_prev(src) if (a.edge == "end" or is_end) else tm.to_out_nearest(src)
+    if a.pad:
+        span = tm.span_at_out(out - 1e-6 if (a.edge == "end" or is_end) else out)
+        padded = out + a.pad
+        if span is not None:
+            padded = min(max(padded, span.out_in), span.out_out)
+        out = max(0.0, min(padded, tm.out_duration))
+    return Resolved(src + a.pad, out)
 
 
 def resolve_range(start: Anchor, end: Anchor | None, dur: float | None, tr: Transcript | None,
                   edl: EDL, tm: TimingMap, default_dur: float = 1.0) -> tuple[Resolved, Resolved]:
     s = resolve(start, tr, edl, tm)
     if end is not None:
-        e = resolve(end, tr, edl, tm)
+        e = resolve(end, tr, edl, tm, is_end=True)
     else:
         d = dur if dur is not None else default_dur
         e = Resolved(None if s.src is None else s.src + d, s.out + d)

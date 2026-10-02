@@ -46,6 +46,34 @@ def test_resolve_through_timing_map():
     assert r.out == pytest.approx(0.5)
 
 
+def test_end_anchor_past_a_segment_end_snaps_back_not_forward():
+    """A caption whose padded end lands in a cut must end where its segment ends, not at the next span 20 s later."""
+    from autoedit.edl.resolve import resolve_range
+    edl = EDL(meta=_meta(), segments=[Segment(id="s1", src_in=1.0, src_out=2.5), Segment(id="s2", src_in=8.0, src_out=9.0)])
+    tm = TimingMap(Fraction(30, 1))
+    tm.append_source(1.0, 2.5, id="s1#0")
+    tm.append_source(8.0, 9.0, id="s2#0")
+    tr = _tr()
+    s, e = resolve_range(Anchor(word=1), Anchor(word=2, edge="end", pad=0.25), None, tr, edl, tm)
+    assert s.out == pytest.approx(0.5)
+    assert e.out == pytest.approx(1.5)      # the end of s1, not 1.5 + the cut
+
+
+def test_pad_never_crosses_into_a_restructured_segment():
+    """After a hook move, the segment after the hook's source end plays much later; a padded end stays put."""
+    from autoedit.edl.resolve import resolve_range
+    edl = EDL(meta=_meta(), segments=[Segment(id="hook", src_in=2.0, src_out=3.0), Segment(id="s1", src_in=1.0, src_out=2.0),
+                                      Segment(id="s2", src_in=3.0, src_out=9.0)])
+    tm = TimingMap(Fraction(30, 1))
+    tm.append_source(2.0, 3.0, id="hook#0")
+    tm.append_source(1.0, 2.0, id="s1#0")
+    tm.append_source(3.0, 9.0, id="s2#0")
+    tr = _tr()                                     # word 2 is 2.0-2.4, word 3 is 2.5-2.9
+    s, e = resolve_range(Anchor(word=2), Anchor(word=3, edge="end", pad=0.25), None, tr, edl, tm)
+    assert s.out == pytest.approx(0.0)
+    assert e.out == pytest.approx(1.0)             # clamped to the hook piece, not 2.0 + ... in s2
+
+
 def test_validate_reports_bad_references_and_lonely_risers():
     edl = EDL(meta=_meta(), segments=[Segment(id="s1", src_in=0, src_out=10)],
               cards=[Card(id="k", before_segment="nope", text="x")],

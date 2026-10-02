@@ -35,7 +35,7 @@ def _music_cues(edl: EDL, tr: Transcript | None, tm, profile: Profile, lib: Musi
     pickups = 0
     for sec in edl.music:
         s = resolve(sec.start, tr, edl, tm).out
-        e = resolve(sec.end, tr, edl, tm).out
+        e = resolve(sec.end, tr, edl, tm, is_end=True).out
         if e <= s + 0.5:
             notes.append(f"music {sec.id}: empty range after resolution, skipped")
             continue
@@ -136,18 +136,8 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         for ch in edl.chapters:
             resolved["chapters"].append({"title": ch.title, "out": resolve(ch.at, tr, edl, tm).out})
         if tr and tr.words:
-            fw = tm.to_out(tr.words[0].t0)
-            resolved["hook"] = {"first_word_out": fw if fw is not None else tm.to_out_nearest(tr.words[0].t0)}
-
-        # ---- graphics ----
-        g = render_graphics(edl, tr, tm, compiled.pieces, track, info, profile, font, out_size, work,
-                            project.root / "assets", hold_events, crf=crf, preset=preset,
-                            name="graphics_preview" if preview else "graphics", log=log)
-        notes += g.notes
-        resolved["captions"] = [p.__dict__ for p in g.placements]
-        for ov in edl.overlays:
-            r = resolve(ov.at, tr, edl, tm)
-            resolved["overlays"].append({"id": ov.id, "out_in": r.out, "out_out": r.out + ov.dur, "kind": ov.kind})
+            outs = [t for t in (tm.to_out(w.t0) for w in tr.words) if t is not None]
+            resolved["hook"] = {"first_word_out": min(outs) if outs else None}
 
         # ---- sound ----
         ph_dir = work / "placeholders"
@@ -168,6 +158,48 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
             a, b = resolve_range(sw.start, sw.end, None, tr, edl, tm, 8.0)
             spec.swells.append((a.out, b.out, sw.db))
             resolved["swells"].append({"id": sw.id, "out_in": a.out, "out_out": b.out, "db": sw.db})
+
+        # ---- preview labels ----
+        extra_doc = None
+        if preview:
+            from ..media.text import AssDoc, AssStyle
+            extra_doc = AssDoc(out_size[0], out_size[1])
+            lab = AssStyle("Debug", font, max(12, int(out_size[1] * 0.045)), primary="#FFD400", outline="#000000",
+                           outline_w=1.5, alignment=7, margin_l=0, margin_r=0, margin_v=0)
+            extra_doc.add_style(lab)
+            y0 = int(out_size[1] * 0.02)
+            step = int(out_size[1] * 0.055)
+
+            def label(a: float, b: float, text: str, row: int) -> None:
+                extra_doc.add(a, max(a + 0.3, b), "Debug", f"{{\\an7\\pos(8,{y0 + row * step})}}{text}", layer=5)
+
+            for p in compiled.pieces:
+                dur = float((p.frames + p.hold_frames) / float(info.fps))
+                src = f"src {p.src_in:.1f}-{p.src_out:.1f}" if p.src_in is not None else "card"
+                label(p.out_in, p.out_in + dur, f"{p.id} {src}" + (" PUNCH" if p.punch else "") + (f" ZOOM {p.zoom}" if p.zoom else ""), 0)
+            for b in resolved["beats"]:
+                label(b["out"], b["out_end"], f"BEAT {b['ref']}", 1)
+            for d in resolved["dropouts"]:
+                label(d["out_in"], d["out_out"], f"DROPOUT {d['id']}: {d.get('reason') or ''}", 1)
+            for f in resolved["fadeouts"]:
+                label(f["out_in"], f["out_out"], f"FADEOUT {f['id']}", 2)
+            for w in resolved["swells"]:
+                label(w["out_in"], w["out_out"], f"SWELL {w['id']} +{w['db']}dB", 2)
+            for m in resolved["music"]:
+                label(m["out_in"], m["out_in"] + 3.0, f"MUSIC {m['id']} {m['mood']}" + (" (placeholder)" if m.get("placeholder") else ""), 3)
+                if m.get("pickup_out") is not None:
+                    label(m["pickup_out"], m["pickup_out"] + 2.0, f"PICKUP {m['id']}", 3)
+
+        # ---- graphics ----
+        g = render_graphics(edl, tr, tm, compiled.pieces, track, info, profile, font, out_size, work,
+                            project.root / "assets", hold_events, crf=crf, preset=preset,
+                            name="graphics_preview" if preview else "graphics", extra_doc=extra_doc, log=log)
+        notes += g.notes
+        resolved["captions"] = [p.__dict__ for p in g.placements]
+        for ov in edl.overlays:
+            r = resolve(ov.at, tr, edl, tm)
+            resolved["overlays"].append({"id": ov.id, "out_in": r.out, "out_out": r.out + ov.dur, "kind": ov.kind})
+
         sfx_placeholder = slib.placeholder
         sfx_events = [{"type": "sfx", "kind": s.kind, "file": s.file, "out": resolve(s.at, tr, edl, tm).out,
                        "gain": s.gain_db, "align": s.align, "ref": s.id, "reason": s.reason} for s in edl.sfx]

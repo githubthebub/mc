@@ -181,10 +181,11 @@ def mix(video: Path, out: Path, spec: MixSpec, stems_dir: Path | None = None, lo
     """Mix onto `video` (stream-copied) and write `out`; export stems when stems_dir is given."""
     measured, tp = measure(video, spec)
     gain = spec.lufs - measured
-    # alimiter works on sample peaks; inter-sample peaks and the AAC encoder overshoot by up to
-    # about 1 dB, so the ceiling sits 1 dB under the true-peak target
+    # alimiter works on sample peaks. Limiting at 4x oversampling catches inter-sample peaks, and the
+    # ceiling still sits 1 dB under the true-peak target because the AAC encoder overshoots transients.
     limit = 10 ** ((spec.true_peak - 1.0) / 20)
-    ln = f"volume={gain:.2f}dB,alimiter=limit={limit:.3f}:attack=5:release=50:level=disabled"
+    ln = (f"volume={gain:.2f}dB,aresample=192000,alimiter=limit={limit:.3f}:attack=5:release=50:level=disabled,"
+          f"aresample=48000,alimiter=limit={limit:.3f}:attack=2:release=20:level=disabled")
     inputs, fc, mixexpr, stems = _graph(spec, with_stems=stems_dir is not None)
     fc = fc + [mixexpr + f",{ln},aresample=48000[aout]"]
     stem_files: dict[str, Path] = {}
@@ -201,7 +202,7 @@ def mix(video: Path, out: Path, spec: MixSpec, stems_dir: Path | None = None, lo
     out.parent.mkdir(parents=True, exist_ok=True)
     cmd = ["ffmpeg", "-hide_banner", "-nostdin", "-y", "-loglevel", "error", "-i", str(video), *inputs,
            "-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[aout]", *(video_codec or ["-c:v", "copy"]),
-           "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(out), *extra]
+           "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", str(out), *extra]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         raise FFmpegError("mix failed:\n" + "\n".join(r.stderr.strip().splitlines()[-15:]))

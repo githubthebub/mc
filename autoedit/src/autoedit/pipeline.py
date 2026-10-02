@@ -51,7 +51,7 @@ def run_stage(project: Project, stage: str, settings: Settings, *, force: bool =
     raise ValueError(stage)
 
 
-def run_pipeline(project: Project, settings: Settings, *, upto: str = "package", force: bool = False,
+def run_pipeline(project: Project, settings: Settings, *, upto: str = "verify", force: bool = False,
                  yolo: bool = False, llm: str = "auto", quiet: bool = False) -> dict[str, Any]:
     """Run every stage up to `upto`, skipping stages already done unless force. Stops at the
     review gate after plan when not approved and not yolo."""

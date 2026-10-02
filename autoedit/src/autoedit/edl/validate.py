@@ -78,6 +78,12 @@ def validate(edl: EDL, project=None, tr: Transcript | None = None) -> list[Probl
             drops = [d for d in edl.dropouts if t is not None and abs((resolve_src(d.start, tr, edl) or -99) - t) <= 1.5]
             if not (follow or drops or cards):
                 out.append(Problem("warn", f"riser {s.id}: nothing lands after it (no hit, dropout or card); risers need a payoff"))
+    for sw in edl.swells:
+        t_end = resolve_src(sw.end, tr, edl)
+        for d in edl.dropouts:
+            t_d = resolve_src(d.start, tr, edl)
+            if t_end is not None and t_d is not None and -0.5 <= t_end - t_d <= 3.0:
+                out.append(Problem("warn", f"swell {sw.id} peaks inside dropout {d.id}; the swell will be cut off"))
     # dropout density: more than one per 20 s gets noticed
     if len(edl.dropouts) > max(1, int(D / 20)) + 1:
         out.append(Problem("warn", f"{len(edl.dropouts)} dropouts in {D:.0f}s of source; more than one per 20 s stops being startling"))
