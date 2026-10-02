@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}jobs · autoedit{% endblock %}
+{% block content %}
+<h1>Jobs {% if not worker.alive %}<form class="inline" method="post" action="/worker/start"><button>Start worker</button></form>{% else %}<small class="muted">worker pid {{ worker.pid }}</small>{% endif %}</h1>
+<table class="grid">
+<thead><tr><th>#</th><th>Project</th><th>Command</th><th>Status</th><th></th><th>Error</th></tr></thead>
+{% for j in jobs %}<tr><td>{{ j.id }}</td><td class="mono small">{{ j.project.split('/')[-1] }}</td><td class="mono">{{ j.command }} {{ j.args }}</td>
+<td><span class="tag {{ j.status }}">{{ j.status }}</span></td>
+<td><a href="/jobs/{{ j.id }}/log">log</a>
+ {% if j.status in ('failed','cancelled','done','waiting_approval') %}<form class="inline" method="post" action="/jobs/{{ j.id }}/retry"><button class="small">retry</button></form>{% endif %}
+ {% if j.status == 'queued' %}<form class="inline" method="post" action="/jobs/{{ j.id }}/cancel"><button class="small">cancel</button></form>{% endif %}</td>
+<td class="muted small">{{ (j.error or '')[:160] }}</td></tr>{% else %}<tr><td colspan="6" class="muted">no jobs</td></tr>{% endfor %}
+</table>
+{% endblock %}

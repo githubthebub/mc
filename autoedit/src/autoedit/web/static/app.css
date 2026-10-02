@@ -1,0 +1,29 @@
+:root{--bg:#141414;--panel:#1d1f23;--text:#eaeaea;--muted:#9aa0a6;--accent:#FF4E2A;--ok:#57F287;--warn:#FFD400;--fail:#FF4E2A;--line:#2c2f36}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+a{color:#7fd3ff;text-decoration:none}a:hover{text-decoration:underline}
+header.top{display:flex;align-items:center;gap:24px;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;color:var(--accent);font-size:18px}nav a{margin-right:16px}
+.worker{margin-left:auto;font-size:13px;padding:3px 10px;border-radius:12px;background:#333}.worker.on{background:#1e4d2b;color:var(--ok)}
+main{padding:20px 24px;max-width:1500px;margin:0 auto}h1{font-size:24px;margin:8px 0 12px}h2{font-size:17px;margin:22px 0 8px}
+small.muted,.muted{color:var(--muted)}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+table.grid{border-collapse:collapse;width:100%}table.grid th,table.grid td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:#333}
+.tag.pass,.tag.ok,.tag.done,.tag.executed{background:#1e4d2b;color:var(--ok)}.tag.warn,.tag.waiting_approval,.tag.degraded{background:#4d431e;color:var(--warn)}
+.tag.fail,.tag.failed,.tag.err{background:#4d1e1e;color:var(--fail)}.tag.running{background:#1e3a4d;color:#7fd3ff}.tag.not_executed,.tag.planned{background:#333;color:var(--muted)}
+.st{display:inline-block;min-width:34px;text-align:center;padding:2px 6px;margin-right:3px;border-radius:6px;font-size:12px;background:#2a2d33;color:var(--muted)}
+.st.done{background:#1e4d2b;color:var(--ok)}.st.running{background:#1e3a4d;color:#7fd3ff}.st.failed{background:#4d1e1e;color:var(--fail)}.st.stale{background:#4d431e;color:var(--warn)}
+.bar{height:8px;background:#2a2d33;border-radius:4px;overflow:hidden;min-width:160px}.bar div{height:100%;background:var(--accent);transition:width .4s}
+.prog{width:260px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+button,.btn{display:inline-block;background:#2a2d33;color:var(--text);border:1px solid #3a3e46;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}button.secondary{background:#1d1f23}button.small{padding:2px 8px;font-size:12px}
+form.inline{display:inline}.actions form{display:inline;margin-right:6px}.actions-form label{display:block;margin:6px 0}
+.newform label{display:block;margin:6px 0}.newform input,.newform select{width:100%;max-width:520px;padding:6px 8px;background:#101113;color:var(--text);border:1px solid #3a3e46;border-radius:6px}
+video{width:100%;max-height:60vh;background:#000;border-radius:8px}
+.timeline{position:relative;height:28px;background:#2a2d33;border-radius:6px;margin:8px 0 4px}.timeline .mk{position:absolute;top:4px;height:20px;min-width:3px;opacity:.85;cursor:pointer;border-radius:2px}
+.legend span{display:inline-block;margin-right:12px;font-size:12px;color:var(--muted)}.legend span::before{content:"";display:inline-block;width:10px;height:10px;background:var(--c);margin-right:5px;border-radius:2px}
+textarea{width:100%;font:12px ui-monospace,Menlo,monospace;background:#101113;color:#ddd;border:1px solid #3a3e46;border-radius:6px;padding:8px}
+.summary{background:var(--panel);padding:4px 18px;border-radius:8px;overflow:auto;max-height:80vh}.summary table{border-collapse:collapse;font-size:13px}.summary td,.summary th{border:1px solid var(--line);padding:4px 6px;vertical-align:top}
+.problems li.error{color:var(--fail)}.problems li.warn{color:var(--warn)}p.ok{color:var(--ok)}p.err{color:var(--fail)}p.warn,.warn{color:var(--warn)}
+.frames{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.frames figure{margin:0;width:300px}.frames img{width:100%;border-radius:6px;border:1px solid var(--line)}.frames figcaption{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:20px;align-items:flex-start}.thumb{width:320px;border-radius:8px;border:1px solid var(--line)}
+details{margin:8px 0}summary{cursor:pointer}

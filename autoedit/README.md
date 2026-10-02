@@ -38,3 +38,16 @@ autoedit enqueue PROJECT render --yolo                        # queue any stage 
 Jobs run one at a time (ffmpeg already uses every core). Each job's output goes to `PROJECT/logs/job_<id>_<cmd>.log`;
 stage progress is in `PROJECT/logs/<stage>.progress.json`. Without `--yolo` a batch job stops at the review gate
 with status `waiting_approval`; approve and `autoedit enqueue PROJECT run`.
+
+## Web UI
+
+```
+pip install -e ".[web]"
+autoedit serve            # http://127.0.0.1:8765
+```
+
+Project list with stage states and QA verdicts; a project page with live progress, job queueing (run, plan,
+render, shorts, package, verify, with yolo/force/planner options) and the package downloads; the plan review page
+with the labelled preview player, a timeline of every decision (click to seek), the plan summary, an EDL editor
+that validates on save, and approve / re-plan / render buttons; the QA page with every check, its frame grabs,
+and the NOT EXECUTED list. Jobs run through the same worker as batch mode (start it from the UI).
