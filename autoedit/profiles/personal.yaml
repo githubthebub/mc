@@ -1,0 +1,59 @@
+# "personal": talking-head channel, informative experience, warm orange-red accent.
+name: personal
+format: talking-head
+experience: informative
+handle: "@yourhandle"
+voice_notes: "Direct, warm, first person. Short sentences. Says 'here's the thing' before a takeaway."
+
+fonts:
+  # Put a TTF here (Poppins-Bold.ttf for the reference look). DejaVu Sans Bold is used when missing.
+  primary: null
+
+colors:
+  bg: "#141414"
+  text: "#FFFFFF"
+  accent: "#FF4E2A"      # warm orange-red
+  muted: "#B5B0AA"
+
+captions:
+  style: keyword
+  max_words: 3
+  size_px: 64
+  position: lower
+  accent_words: true
+
+cards:
+  style: dark-textured
+  glow: true
+  duration: 2.5
+
+dead_air:
+  # informative preset: min_silence 0.5, pad 0.15. Punch-ins on alternate jump cuts, face-anchored.
+  punch: 1.10
+
+audio:
+  music_dir: ~/autoedit-assets/personal/music
+  sfx_dir: ~/autoedit-assets/personal/sfx
+  music_rel_db: -10
+  duck_ratio: 8
+  lufs: -14
+  true_peak: -1.5
+  voice_clean: auto
+
+end_screen:
+  seconds: 15
+  reserve_zone: right-third
+  plate: true
+  text: "Watch this next"
+
+thumbnail:
+  style: face-plus-text
+  text_max_words: 3
+  mood_color: warm
+
+shorts:
+  count: 4
+  min_s: 15
+  max_s: 60
+  context_label: "@yourhandle"
+  caption_style: word-by-word
