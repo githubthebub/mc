@@ -178,10 +178,14 @@ def measure(video: Path, spec: MixSpec) -> tuple[float, float | None]:
 
 
 def mix(video: Path, out: Path, spec: MixSpec, stems_dir: Path | None = None, log: StageLog | None = None,
-        video_codec: list[str] | None = None) -> MixResult:
-    """Mix onto `video` (stream-copied) and write `out`; export stems when stems_dir is given."""
+        video_codec: list[str] | None = None, residual_gain_db: float = 0.0, _pass: int = 1) -> MixResult:
+    """Mix onto `video` (stream-copied) and write `out`; export stems when stems_dir is given.
+
+    The static gain lands the measured mix on the target; the limiter then takes some loudness back on
+    peaky material (music-only mixes especially). When the result is more than 0.7 LU off, one second
+    pass re-mixes with the residual gain folded in."""
     measured, tp = measure(video, spec)
-    gain = spec.lufs - measured
+    gain = spec.lufs - measured + residual_gain_db
     # alimiter works on sample peaks. Limiting at 4x oversampling catches inter-sample peaks, and the
     # ceiling still sits 1 dB under the true-peak target because the AAC encoder overshoots transients.
     limit = 10 ** ((spec.true_peak - 1.0) / 20)
@@ -207,6 +211,12 @@ def mix(video: Path, out: Path, spec: MixSpec, stems_dir: Path | None = None, lo
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         raise FFmpegError("mix failed:\n" + "\n".join(r.stderr.strip().splitlines()[-15:]))
+    from ..media.audio import measure_loudness
+    landed = measure_loudness(out).integrated_lufs
     if log:
-        log.info("mixed", measured_lufs=round(measured, 1), gain_db=round(gain, 2), target=spec.lufs)
+        log.info("mixed", measured_lufs=round(measured, 1), gain_db=round(gain, 2), target=spec.lufs, landed=round(landed, 1), pass_=_pass)
+    if _pass < 3 and abs(landed - spec.lufs) > 0.7 and landed > -60:
+        # the limiter takes back part of each gain step on peaky (music-only) mixes: push a little past
+        return mix(video, out, spec, stems_dir, log, video_codec,
+                   residual_gain_db=residual_gain_db + 1.3 * (spec.lufs - landed), _pass=_pass + 1)
     return MixResult(measured, gain, tp, ";".join(fc), stem_files)

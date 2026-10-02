@@ -58,19 +58,25 @@ def segments_from_ranges(ranges: list[tuple[float, float]]) -> list[Segment]:
 
 
 def baseline_edl(meta: Meta, tr: Transcript | None, analysis: dict[str, Any], profile: Profile,
-                 protect: list[tuple[float, float]] | None = None) -> EDL:
+                 protect: list[tuple[float, float]] | None = None, dead_air: bool = True) -> EDL:
     """A code-only EDL: experience preset dead-air removal, nothing else. The planner adds the rest."""
     params = profile.dead_air_params()
     pauses = [(float(s), float(e)) for s, e in analysis.get("pauses", [])]
-    ranges = cut_list(meta.duration, pauses, params, protect)
-    ranges = trim_lead_and_tail(ranges, tr, params["pad"], meta.duration)
+    if dead_air:
+        ranges = cut_list(meta.duration, pauses, params, protect)
+        ranges = trim_lead_and_tail(ranges, tr, params["pad"], meta.duration)
+    else:
+        ranges = [(0.0, meta.duration)]
     edl = EDL(meta=meta, segments=segments_from_ranges(ranges))
     edl.ensure_ledger()
     removed = meta.duration - sum(b - a for a, b in ranges)
     edl.mark("experience_fit", "executed", f"{profile.experience} preset: min_silence {params['min_silence']} s, pad {params['pad']} s", "plan")
-    edl.mark("dead_air_removal", "executed", f"removed {removed:.1f} s in {len(pauses)} pauses", "plan", count=len(ranges))
-    if tr is None:
-        edl.mark("transcript_words", "not_executed", "no transcript", "plan")
+    if dead_air:
+        edl.mark("dead_air_removal", "executed", f"removed {removed:.1f} s in {len(pauses)} pauses", "plan", count=len(ranges))
+    else:
+        edl.mark("dead_air_removal", "not_executed", "scripted format: every pause is deliberate", "plan")
+    if tr is None or not tr.words:
+        edl.mark("transcript_words", "not_executed", "no transcript" + (f": {tr.notes[0]}" if tr and tr.notes else ""), "plan")
     elif tr.degraded:
         edl.mark("transcript_words", "degraded", "keyword-spotting transcript; word timings are rough", "plan")
     else:

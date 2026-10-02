@@ -25,3 +25,16 @@ Outputs land in `07_package/` (named final, `shorts/`, `thumbnail.png`, `metadat
 
 Set `ANTHROPIC_API_KEY` for the planner; without it the plan stage falls back to dead-air removal only and says so.
 Configuration: an optional `autoedit.yaml` (projects_dir, models_dir, skill_dir, llm.model, whisper.model, render.workers).
+
+## Batch mode
+
+```
+autoedit batch --watch ~/inbox --profile personal --yolo     # registers each new file once its size is stable for 30 s
+autoedit worker --daemon                                     # detached worker; survives closing the terminal
+autoedit jobs                                                # queue state; autoedit retry ID re-queues a failed job
+autoedit enqueue PROJECT render --yolo                        # queue any stage for a project
+```
+
+Jobs run one at a time (ffmpeg already uses every core). Each job's output goes to `PROJECT/logs/job_<id>_<cmd>.log`;
+stage progress is in `PROJECT/logs/<stage>.progress.json`. Without `--yolo` a batch job stops at the review gate
+with status `waiting_approval`; approve and `autoedit enqueue PROJECT run`.

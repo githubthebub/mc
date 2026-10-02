@@ -26,11 +26,19 @@ def _link(src: Path, dst: Path) -> None:
 
 def run(project: Project, settings: Settings, log: StageLog | None = None) -> MediaInfo:
     log = log or project.log("ingest")
+    from ..formats import get_format
+    from ..profile import load_profile
+    fmt = get_format(project.format)
     src = project.source
-    if src is None or not src.exists():
-        raise FileNotFoundError(f"project has no source media: {src}")
-    project.begin("ingest", file_hash(src))
+    composed = None
+    project.begin("ingest", file_hash(src) if src and src.exists() else None)
     try:
+        if src is None or not src.exists():
+            profile = load_profile(project.profile_name, settings.profiles_dir)
+            composed = fmt.compose(project, settings, profile, log)
+            if composed is None:
+                raise FileNotFoundError(f"project has no source media: {src}")
+            src = composed
         info = probe(src)
         if not info.has_audio:
             raise RuntimeError("source has no audio stream; a talking-head edit needs the voice")
@@ -38,7 +46,8 @@ def run(project: Project, settings: Settings, log: StageLog | None = None) -> Me
             raise RuntimeError("source has no video stream")
         log.info("probed", duration=round(info.duration, 2), size=f"{info.width}x{info.height}", fps=info.fps_str)
         d = project.dir("ingest")
-        _link(src, project.ingest_source)
+        if composed is None:
+            _link(src, project.ingest_source)
         # proxy for analysis and preview
         ph = min(settings.render.proxy_height, info.height)
         log.info("proxy", height=ph)

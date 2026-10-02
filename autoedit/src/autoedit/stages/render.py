@@ -148,6 +148,15 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         if tr and tr.words:
             outs = [t for t in (tm.to_out(w.t0) for w in tr.words) if t is not None]
             resolved["hook"] = {"first_word_out": min(outs) if outs else None}
+        sched = project.dir("ingest") / "schedule.json"
+        if sched.exists():   # scripted formats: the first card or message is the hook, not a spoken word
+            evs = [e for e in json.loads(sched.read_text()) if e["kind"] in ("card", "msg")]
+            firsts = [t for t in (tm.to_out(e["t0"]) for e in evs) if t is not None]
+            resolved.setdefault("hook", {})
+            resolved["hook"]["first_event_out"] = min(firsts) if firsts else None
+            resolved["hook"]["voiceless"] = True
+            appear = [tm.to_out(e.get("appear") or e["t0"]) for e in evs]
+            resolved["visual_events"] = [t for t in appear if t is not None]
 
         # ---- sound ----
         ph_dir = work / "placeholders"

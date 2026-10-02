@@ -189,9 +189,10 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
             v = rms_db_windows(vstem, win=win) if vstem.exists() else None
             if v is not None and len(v) == len(m):
                 active = [i for i in range(len(m)) if v[i] > -40 and m[i] > -60]
-                duck_db = float(np.mean([m[i] - ducked[i] for i in active])) if active else 0.0
-                det["ducking"] = [{"mean_duck_db_under_voice": round(duck_db, 1), "ok": duck_db >= 2.0}]
-                ok &= duck_db >= 2.0
+                if len(active) >= 4:        # only meaningful when there is a voice to duck under
+                    duck_db = float(np.mean([m[i] - ducked[i] for i in active]))
+                    det["ducking"] = [{"mean_duck_db_under_voice": round(duck_db, 1), "ok": duck_db >= 2.0}]
+                    ok &= duck_db >= 2.0
         n = sum(len(v) for v in det.values())
         checks.append(_check("music_automation", ("pass" if ok else "fail") if n else "not_executed",
                              f"{n} planned music moves measured on the music stem", det, "dropout <= -50 dBFS, fadeout >= 12 dB down, swell >= 40% of planned, pickup >= +2 dB",
@@ -268,17 +269,20 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
     hook = resolved.get("hook") or {}
     fw = hook.get("first_word_out")
     changes = scene_changes(final)
-    marks = sorted(set([round(p["out_in"], 2) for p in resolved.get("punches", [])] +
+    marks = sorted(set([round(t, 2) for t in resolved.get("visual_events", [])] +
+                       [round(p["out_in"], 2) for p in resolved.get("punches", [])] +
                        [round(z["out_in"], 2) for z in resolved.get("zooms", [])] +
                        [round(c["out_in"], 2) for c in resolved.get("cards", [])] +
                        [round(c["out_in"], 2) for c in caps] + [round(c, 2) for c in changes] +
                        [round(s.out_in, 2) for s in tm.spans[1:]]))
     early = [m for m in marks if 0 < m <= 3.0]
     hook_limit = 1.0 if vertical else 3.0
+    if hook.get("voiceless"):
+        fw = hook.get("first_event_out")
     ok_hook = fw is not None and fw <= hook_limit
     frames = [grab(t, f"hook_{int(t * 10)}", face_boxes(t), f"hook {t:.1f}s") for t in (0.5, 1.5, 2.5)]
     checks.append(_check("hook", "pass" if ok_hook else "fail",
-                         f"first word at {fw if fw is None else round(fw, 2)}s; {len(early)} visual changes in the first 3 s",
+                         f"first {'event' if hook.get('voiceless') else 'word'} at {fw if fw is None else round(fw, 2)}s; {len(early)} visual changes in the first 3 s",
                          {"first_word_out": fw, "visual_changes_first_3s": len(early)}, f"speech within {hook_limit} s", frames))
     if vertical:
         # loop-friendly ending: no fade to silence in the last half second

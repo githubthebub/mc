@@ -32,8 +32,8 @@ chat:
   highlight: "#5865F2"
   card_bg: "#3A3C41"
   card_text: "#DBDEE1"
-  message_size_px: 44
-  name_size_px: 40
+  message_size_px: 52
+  name_size_px: 46
   card_size_px: 84
   avatar_px: 88
   typing_dots_s: 1.2
@@ -46,7 +46,7 @@ audio:
   sfx_dir: ~/autoedit-assets/frogbertsaid/sfx
   music_rel_db: -12
   duck_ratio: 6
-  lufs: -14
+  lufs: -16            # music-led episodes: -16 keeps the beds dynamic (the skill allows -16 for a quieter feel)
   true_peak: -1.5
   voice_clean: "off"
 

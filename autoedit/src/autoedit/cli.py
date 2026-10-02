@@ -123,6 +123,26 @@ def cmd_worker(a: argparse.Namespace) -> int:
     return worker_main(daemon=a.daemon, once=a.once)
 
 
+def cmd_enqueue(a: argparse.Namespace) -> int:
+    from .batch.queue import JobQueue
+    s = load_settings()
+    p = _project(a.project)
+    args = {k: v for k, v in (("yolo", a.yolo), ("force", a.force), ("llm", a.llm)) if v}
+    j = JobQueue(s.projects_dir / "queue.db").add(str(p.root), a.command, args)
+    print(json.dumps(j.as_dict()))
+    return 0
+
+
+def cmd_retry(a: argparse.Namespace) -> int:
+    from .batch.queue import JobQueue
+    s = load_settings()
+    q = JobQueue(s.projects_dir / "queue.db")
+    old = q.get(a.job_id)
+    j = q.add(old.project, old.command, old.args)
+    print(json.dumps(j.as_dict()))
+    return 0
+
+
 def cmd_jobs(a: argparse.Namespace) -> int:
     from .batch.queue import JobQueue
     s = load_settings()
@@ -198,6 +218,18 @@ def main(argv: list[str] | None = None) -> int:
 
     j = sub.add_parser("jobs", help="list queued jobs")
     j.set_defaults(fn=cmd_jobs)
+
+    e = sub.add_parser("enqueue", help="queue a command for the worker")
+    e.add_argument("project")
+    e.add_argument("command", choices=["run", "plan", "render", "shorts", "package", "verify"])
+    e.add_argument("--yolo", action="store_true")
+    e.add_argument("--force", action="store_true")
+    e.add_argument("--llm", default=None, choices=["auto", "off", "replay"])
+    e.set_defaults(fn=cmd_enqueue)
+
+    rt = sub.add_parser("retry", help="queue a failed job again")
+    rt.add_argument("job_id", type=int)
+    rt.set_defaults(fn=cmd_retry)
 
     sv = sub.add_parser("serve", help="local web UI")
     sv.add_argument("--host", default="127.0.0.1")

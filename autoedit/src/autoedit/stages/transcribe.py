@@ -66,7 +66,9 @@ def run(project: Project, settings: Settings, log: StageLog | None = None, *,
     project.begin("transcribe", file_hash(audio) if audio.exists() else None)
     try:
         duration = float(json.loads(project.probe_json.read_text()).get("duration", 0.0)) if project.probe_json.exists() else 0.0
-        src = replay or (Path(project.options["transcript"]) if project.options.get("transcript") else None)
+        from ..formats import get_format
+        fmt_tr = get_format(project.format).transcript_file(project)
+        src = replay or fmt_tr or (Path(project.options["transcript"]) if project.options.get("transcript") else None)
         if src is not None:
             log.info("replaying transcript", path=str(src))
             tr = Transcript.load(Path(src))
@@ -83,8 +85,15 @@ def run(project: Project, settings: Settings, log: StageLog | None = None, *,
                     if transcriber == "whisper":
                         raise
             if tr is None:
-                log.warn("falling back to PocketSphinx keyword spotting (degraded)")
-                tr = _pocketsphinx(audio, log, duration)
+                try:
+                    log.warn("falling back to PocketSphinx keyword spotting (degraded)")
+                    tr = _pocketsphinx(audio, log, duration)
+                except ImportError as e:
+                    log.error("no transcriber available: faster-whisper failed and pocketsphinx is not installed. "
+                              "The edit continues WITHOUT words: dead-air removal only; every word-dependent "
+                              "technique is reported as not executed.")
+                    tr = Transcript(language="und", model="none", source_duration=duration, degraded=True,
+                                    notes=[f"no transcriber available ({e}); install faster-whisper models or pocketsphinx"])
         d = project.dir("transcribe")
         tr.save(project.transcript_json)
         (d / "transcript.srt").write_text(tr.to_srt())

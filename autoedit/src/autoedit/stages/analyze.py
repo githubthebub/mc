@@ -59,11 +59,17 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         cuts = scene_cuts(project.proxy)
         log.progress(0.4, "faces")
         track_info: dict[str, Any] = {"available": False, "reason": None}
+        from ..formats import get_format
+        focus_file = get_format(project.format).focus_track_file(project)
         try:
-            model = faces.ensure_model(settings.models_dir)
-            track = faces.build_track(project.proxy, model, src_width=info.width, src_height=info.height,
-                                      sample_fps=settings.render.face_sample_fps,
-                                      on_progress=lambda f: log.progress(0.4 + 0.55 * f, "faces"))
+            if focus_file is not None:
+                track = faces.FaceTrack.load(focus_file)
+                log.info("using the format's focus track", samples=len(track.samples))
+            else:
+                model = faces.ensure_model(settings.models_dir)
+                track = faces.build_track(project.proxy, model, src_width=info.width, src_height=info.height,
+                                          sample_fps=settings.render.face_sample_fps,
+                                          on_progress=lambda f: log.progress(0.4 + 0.55 * f, "faces"))
             track.save(project.face_track_json)
             mb = track.median_box()
             track_info = {"available": len(track.samples) > 0,

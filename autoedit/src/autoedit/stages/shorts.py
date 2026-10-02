@@ -29,9 +29,37 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
     log = log or project.log("shorts")
     project.begin("shorts", file_hash(project.edl_json) if project.edl_json.exists() else None)
     try:
+        from ..formats import get_format
+        fmt = get_format(project.format)
+        if not fmt.captions:   # chat-skit: a 9:16 slice of the chat UI is unreadable; needs its own vertical layout
+            rendered = project.dir("render") / "edl.rendered.json"
+            if rendered.exists():
+                r = EDL.load(rendered)
+                r.ensure_ledger()
+                for k in ("shorts_face_tracked", "shorts_word_captions", "shorts_loop_ending"):
+                    r.mark(k, "not_executed", f"{fmt.name}: vertical recomposition of the chat layout is not implemented yet", "shorts")
+                r.save(rendered)
+            (project.dir("render") / "shorts").mkdir(parents=True, exist_ok=True)
+            (project.dir("render") / "shorts" / "index.json").write_text(json.dumps({"count": 0, "shorts": [], "notes": [f"{fmt.name}: Shorts not supported yet"]}))
+            project.finish("shorts", count=0)
+            log.done(count=0, skipped=fmt.name)
+            return {"count": 0, "shorts": [], "notes": [f"{fmt.name}: Shorts not supported yet"]}
         edl = EDL.load(project.edl_json)
         tr = Transcript.load(project.transcript_json)
         analysis = json.loads(project.analysis_json.read_text())
+        if not tr.words:
+            rendered = project.dir("render") / "edl.rendered.json"
+            if rendered.exists():
+                r = EDL.load(rendered)
+                r.ensure_ledger()
+                for k in ("shorts_face_tracked", "shorts_word_captions", "shorts_loop_ending"):
+                    r.mark(k, "not_executed", "no transcript: Shorts need words to pick moments and caption them", "shorts")
+                r.save(rendered)
+            (project.dir("render") / "shorts").mkdir(parents=True, exist_ok=True)
+            (project.dir("render") / "shorts" / "index.json").write_text(json.dumps({"count": 0, "shorts": [], "notes": ["no transcript"]}))
+            project.finish("shorts", count=0)
+            log.done(count=0, skipped="no transcript")
+            return {"count": 0, "shorts": [], "notes": ["no transcript"]}
         info = probe(project.ingest_source)
         track = FaceTrack.load(project.face_track_json) if project.face_track_json.exists() else None
         if track and not track.samples:

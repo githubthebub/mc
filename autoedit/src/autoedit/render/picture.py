@@ -153,7 +153,8 @@ def compile_pieces(edl: EDL, tr: Transcript | None, info: MediaInfo, track: Face
         for a, b in zip(bounds, bounds[1:]):
             if b - a < MIN_PIECE_S:
                 continue
-            zoom = next((z for z in seg_zooms if z[0] <= a and b <= z[1] + 1e-6), None)
+            tol = 0.6 / float(fps)   # piece bounds are frame-snapped; zoom bounds are not
+            zoom = next((z for z in seg_zooms if z[0] - tol <= a and b <= z[1] + tol), None)
             crop = None
             zid = None
             punched = False

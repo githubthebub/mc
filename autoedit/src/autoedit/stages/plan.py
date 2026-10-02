@@ -47,8 +47,8 @@ def intersect(ranges: list[Range], win: Range) -> list[Range]:
 
 # ---- prompt blocks ----------------------------------------------------------------------
 
-def profile_block(profile: Profile) -> str:
-    return "\n".join([f"- channel: {profile.name} ({profile.handle or 'no handle'})", f"- format: {profile.format}",
+def profile_block(profile: Profile, format_notes: str | None = None) -> str:
+    return "\n".join([f"- channel: {profile.name} ({profile.handle or 'no handle'})", f"- format: {profile.format}" + (f": {format_notes}" if format_notes else ""),
                       f"- experience viewers come for: {profile.experience}",
                       f"- creator's voice: {profile.voice_notes or 'not described'}",
                       f"- captions: {profile.captions.style}, max {profile.captions.max_words} words",
@@ -87,12 +87,12 @@ def density_block(experience: str) -> str:
 # ---- assembly ---------------------------------------------------------------------------
 
 def assemble(base: EDL, tr: Transcript, analysis: dict[str, Any], profile: Profile, story: StoryPassOut,
-             dec: DecisionsOut | None) -> tuple[EDL, list[str]]:
+             dec: DecisionsOut | None, dead_air: bool = True, captions: bool = True) -> tuple[EDL, list[str]]:
     notes: list[str] = []
     params = profile.dead_air_params()
     pad = float(params["pad"])
     D = base.meta.duration
-    pauses = [(float(s), float(e)) for s, e in analysis.get("pauses", [])]
+    pauses = [(float(s), float(e)) for s, e in analysis.get("pauses", [])] if dead_air else []
     sids = {s.id for s in tr.sentences}
     wids = {w.id for w in tr.words}
 
@@ -109,8 +109,11 @@ def assemble(base: EDL, tr: Transcript, analysis: dict[str, Any], profile: Profi
         p = next((p for p in pauses if s.t1 - 0.1 <= p[0] <= s.t1 + 1.0), None)
         if p:
             protect.append(p)
-    ranges = cut_list(D, pauses, params, protect)
-    ranges = trim_lead_and_tail(ranges, tr, pad, D)
+    if dead_air:
+        ranges = cut_list(D, pauses, params, protect)
+        ranges = trim_lead_and_tail(ranges, tr, pad, D)
+    else:
+        ranges = [(0.0, D)]
     cut_s = 0.0
     for cs in story.cut_sentences:
         s = sent(cs.sentence)
@@ -231,7 +234,9 @@ def assemble(base: EDL, tr: Transcript, analysis: dict[str, Any], profile: Profi
                                       rel_db=profile.audio.music_rel_db, reason=m.reason))
     # execution decisions
     if dec is not None:
-        for c in dec.captions:
+        if not captions and dec.captions:
+            notes.append(f"{len(dec.captions)} captions dropped: the words are already on screen in this format")
+        for c in (dec.captions if captions else []):
             if c.word_from not in wids or c.word_to not in wids or c.word_to < c.word_from:
                 notes.append(f"captions: bad word range {c.word_from}-{c.word_to}")
                 continue
@@ -311,11 +316,32 @@ def assemble(base: EDL, tr: Transcript, analysis: dict[str, Any], profile: Profi
     edl.mark("litmus_voiceover", "executed" if edl.voiceover_slots else "not_executed",
              f"{len(edl.voiceover_slots)} lines written for the creator to record" if edl.voiceover_slots else "no clarity gaps found", "plan",
              len(edl.voiceover_slots))
-    edl.mark("dead_air_removal", "executed", f"{profile.experience} preset; {D - kept:.1f} s removed incl. {cut_s:.1f} s of cut sentences; "
-             f"{len(protect)} pauses protected", "plan", len(edl.segments))
+    if dead_air:
+        edl.mark("dead_air_removal", "executed", f"{profile.experience} preset; {D - kept:.1f} s removed incl. {cut_s:.1f} s of cut sentences; "
+                 f"{len(protect)} pauses protected", "plan", len(edl.segments))
+    else:
+        edl.mark("dead_air_removal", "not_executed", f"scripted format: every pause is deliberate ({cut_s:.1f} s of cut scenes)", "plan")
     edl.mark("montage_compression", "executed" if montages else "not_executed",
              f"{len(montages)} ranges" if montages else "planner found no stretch without conflict or curiosity", "plan", len(montages))
     return edl, notes
+
+
+def merge_extras(edl: EDL, extras: dict[str, Any], profile: Profile) -> list[str]:
+    """Format-requested items: sfx and zooms by source time, a default music mood when the planner gave none."""
+    notes: list[str] = []
+    for i, x in enumerate(extras.get("sfx", [])):
+        edl.sfx.append(Sfx(id=f"fx{i + 1}", at=Anchor(src=float(x["src"])), kind=x.get("kind"), gain_db=float(x.get("gain_db", 0.0)),
+                           align=x.get("align", "start"), reason=x.get("reason")))
+    for i, z in enumerate(extras.get("zooms", [])):
+        edl.zooms.append(Zoom(id=f"fz{i + 1}", at=Anchor(src=float(z["src_in"])), end=Anchor(src=float(z["src_out"])),
+                              scale=float(z.get("scale", 1.18)), reason=z.get("reason")))
+    if not edl.music and edl.segments and extras.get("music_mood"):
+        edl.music.append(MusicSection(id="m1", start=Anchor(segment=edl.segments[0].id),
+                                      end=Anchor(segment=edl.segments[-1].id, edge="end"), mood=str(extras["music_mood"]),
+                                      rel_db=profile.audio.music_rel_db, reason="format default mood (no planner music)"))
+    if extras.get("sfx") or extras.get("zooms"):
+        notes.append(f"format extras merged: {len(extras.get('sfx', []))} sfx, {len(extras.get('zooms', []))} zooms")
+    return notes
 
 
 # ---- summary ----------------------------------------------------------------------------
@@ -400,15 +426,17 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         analysis = json.loads(project.analysis_json.read_text())
         meta = meta_from(project.name, profile, project.format, str(project.source), analysis["duration"], analysis["fps"],
                          analysis["width"], analysis["height"])
-        base = baseline_edl(meta, tr, analysis, profile)
+        from ..formats import get_format
+        fmt = get_format(project.format)
+        base = baseline_edl(meta, tr, analysis, profile, dead_air=fmt.dead_air)
         d = project.dir("plan")
         story: StoryPassOut | None = None
         dec: DecisionsOut | None = None
         notes: list[str] = []
         model_used: str | None = None
         client = LLM(settings, d / "llm", mode=llm, log=log)
-        if llm == "off" or tr is None:
-            reason = "planner disabled (--llm off)" if llm == "off" else "no transcript"
+        if llm == "off" or tr is None or not tr.words:
+            reason = "planner disabled (--llm off)" if llm == "off" else "no transcript (no transcriber available)"
             notes.append(f"{reason}: baseline EDL (dead-air removal only)")
             edl = base
             edl.mark("story_pass", "not_executed", reason, "plan")
@@ -422,7 +450,7 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
                 edl.mark(k, "not_executed", "ANTHROPIC_API_KEY not set", "plan")
         else:
             log.progress(0.05, "story pass")
-            user1 = load_prompt("story_pass").format(profile_block=profile_block(profile),
+            user1 = load_prompt("story_pass").format(profile_block=profile_block(profile, fmt.planner_notes),
                                                      analysis_block=analysis_block(analysis, tr),
                                                      transcript_block=tr.numbered_for_llm({int(k): v for k, v in (analysis.get("sentence_energy_db") or {}).items()}))
             story = client.call("story_pass", user1, StoryPassOut)
@@ -432,11 +460,12 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
                                                     density_block=density_block(profile.experience))
             dec = client.call("decisions", user2, DecisionsOut)
             model_used = settings.llm.model if llm != "replay" else "replay"
-            edl, notes = assemble(base, tr, analysis, profile, story, dec)
+            edl, notes = assemble(base, tr, analysis, profile, story, dec, dead_air=fmt.dead_air, captions=fmt.captions)
             edl.meta.created_by = "llm"
             edl.meta.model = model_used
             (d / "story_pass.json").write_text(json.dumps(story.model_dump(mode="json"), indent=1))
             (d / "decisions.json").write_text(json.dumps(dec.model_dump(mode="json"), indent=1))
+        notes += merge_extras(edl, fmt.extras(project), profile)
         problems = validate(edl, project, tr)
         for p in problems:
             (log.warn if p.level == "error" else log.info)(f"validation {p.level}: {p.msg}")
