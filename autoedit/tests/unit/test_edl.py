@@ -74,6 +74,18 @@ def test_pad_never_crosses_into_a_restructured_segment():
     assert e.out == pytest.approx(1.0)             # clamped to the hook piece, not 2.0 + ... in s2
 
 
+def test_large_pads_are_structural_and_map_through_cuts():
+    from autoedit.edl.resolve import resolve
+    edl = EDL(meta=_meta(), segments=[Segment(id="s1", src_in=0.0, src_out=4.0), Segment(id="s2", src_in=6.0, src_out=10.0)])
+    tm = TimingMap(Fraction(30, 1))
+    tm.append_source(0.0, 4.0, id="s1#0")
+    tm.append_source(6.0, 10.0, id="s2#0")
+    r = resolve(Anchor(src=8.0, pad=-5.0), None, edl, tm)      # "5 s before 8.0" = source 3.0 -> output 3.0
+    assert r.src == 3.0 and r.out == pytest.approx(3.0)
+    r = resolve(Anchor(src=8.0, pad=-0.5), None, edl, tm)      # cosmetic: output 6.0 - 0.5 inside s2's piece
+    assert r.out == pytest.approx(5.5)
+
+
 def test_validate_reports_bad_references_and_lonely_risers():
     edl = EDL(meta=_meta(), segments=[Segment(id="s1", src_in=0, src_out=10)],
               cards=[Card(id="k", before_segment="nope", text="x")],

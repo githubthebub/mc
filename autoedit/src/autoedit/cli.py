@@ -159,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--llm", default="auto", choices=["auto", "off", "replay"], help="plan with Claude, code only, or replay saved responses")
     r.set_defaults(fn=cmd_run)
 
-    for st in ("ingest", "transcribe", "analyze", "plan", "render", "package", "verify"):
+    for st in ("ingest", "transcribe", "analyze", "plan", "render", "package", "verify"):  # shorts has its own command
         sp = sub.add_parser(st, help=f"run the {st} stage")
         sp.add_argument("project")
         sp.add_argument("--deps", action="store_true", help="run earlier stages first if needed")

@@ -9,6 +9,9 @@ from .schema import EDL, Anchor
 from .transcript import Transcript
 
 
+COSMETIC_PAD_S = 1.0
+
+
 class AnchorError(ValueError):
     pass
 
@@ -61,10 +64,12 @@ def resolve(a: Anchor, tr: Transcript | None, edl: EDL, tm: TimingMap, is_end: b
                 idx -= 1
             out = tm.spans[idx].out_in + a.pad
         return Resolved(resolve_src(a, tr, edl), out)
-    # resolve the unpadded moment first: the pad is a cosmetic offset applied in OUTPUT time and
-    # never crosses into another piece (a padded end must not land in the next segment, which may
-    # sit elsewhere in the output after a restructure)
-    bare = a.model_copy(update={"pad": 0.0})
+    # A small pad (up to COSMETIC_PAD_S) is a cosmetic offset applied in OUTPUT time that never
+    # crosses into another piece (a padded end must not land in the next segment, which may sit
+    # elsewhere after a restructure). A larger pad is structural ("8 s before the payoff") and is
+    # applied in source time, then mapped through the cuts.
+    cosmetic = abs(a.pad) <= COSMETIC_PAD_S
+    bare = a.model_copy(update={"pad": 0.0}) if cosmetic else a
     src = resolve_src(bare, tr, edl)
     assert src is not None
     out = tm.to_out(src)
@@ -72,13 +77,14 @@ def resolve(a: Anchor, tr: Transcript | None, edl: EDL, tm: TimingMap, is_end: b
         # the anchored moment was cut (dead air or a trimmed stretch): a start snaps forward to the
         # next kept moment, an end snaps back to the previous one
         out = tm.to_out_prev(src) if (a.edge == "end" or is_end) else tm.to_out_nearest(src)
-    if a.pad:
+    if a.pad and cosmetic:
         span = tm.span_at_out(out - 1e-6 if (a.edge == "end" or is_end) else out)
         padded = out + a.pad
         if span is not None:
             padded = min(max(padded, span.out_in), span.out_out)
         out = max(0.0, min(padded, tm.out_duration))
-    return Resolved(src + a.pad, out)
+        src = src + a.pad
+    return Resolved(src, out)
 
 
 def resolve_range(start: Anchor, end: Anchor | None, dur: float | None, tr: Transcript | None,

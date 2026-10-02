@@ -44,7 +44,7 @@ def project(sample, tmp_path_factory) -> tuple[Project, Settings]:
 def test_pipeline_end_to_end(project):
     p, settings = project
     res = run_pipeline(p, settings, yolo=True, llm="replay", quiet=True)
-    assert all(p.is_done(s) for s in ("ingest", "transcribe", "analyze", "plan", "render", "verify", "package")), p.summary()
+    assert all(p.is_done(s) for s in ("ingest", "transcribe", "analyze", "plan", "render", "shorts", "package", "verify")), p.summary()
 
     # plan artifacts
     assert (p.dir("plan") / "plan_summary.md").exists()
@@ -88,8 +88,25 @@ def test_pipeline_end_to_end(project):
     assert rendered.techniques["music_dropouts"].status == "executed"
     assert rendered.techniques["hook_proof_early"].status == "executed"
 
+    # shorts: two vertical outputs, face-tracked, word captions, loop ending, all QA checks pass
+    idx = json.loads((p.dir("render") / "shorts" / "index.json").read_text())
+    assert idx["count"] == 2, idx
+    for sh in idx["shorts"]:
+        si = probe(Path(sh["file"]))
+        assert (si.width, si.height) == (1080, 1920)
+        assert 14.0 <= si.duration <= 61.0
+        rep = qa["outputs"][sh["id"]]
+        st = {c["id"]: c["status"] for c in rep["checks"]}
+        for cid in ("dead_air", "loudness", "true_peak", "text_safe_zones", "faces_not_cropped", "hook", "loop_ending"):
+            assert st[cid] == "pass", (sh["id"], cid, next(c for c in rep["checks"] if c["id"] == cid))
+        sr = json.loads((p.dir("render") / "shorts" / sh["id"] / "resolved.json").read_text())
+        assert any(r["mode"] == "face-tracked" for r in sr["crop_paths"])
+        assert len(sr["word_captions"]) >= 5
+    assert idx["shorts"][0]["hook_sentence"] == idx["shorts"][0]["from_sentence"], "a short starts on its strongest line"
+
     # package
     meta = json.loads((p.dir("package") / "metadata.json").read_text())
+    assert len(meta["shorts"]) == 2 and all(Path(s["file"]).exists() for s in meta["shorts"])
     assert Path(meta["file"]).exists() and meta["title"] == "The one mistake killing your videos"
     assert Path(meta["thumbnail"]["file"]).exists() and not meta["thumbnail"]["overlaps_face"]
     assert len(meta["chapters"]) >= 3 and meta["chapters"][0]["out"] == 0.0

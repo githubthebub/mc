@@ -274,7 +274,13 @@ def assemble(base: EDL, tr: Transcript, analysis: dict[str, Any], profile: Profi
             if s.id in hook_ids:
                 notes.append(f"swells: S{s.id} was moved into the hook, swell dropped")
                 continue
-            edl.swells.append(Swell(id=f"w{len(edl.swells) + 1}", start=Anchor(sentence=s.id, pad=-8.0),
+            sec_start = next((sent(m.from_sentence).t0 for m in plans if sent(m.from_sentence) and sent(m.to_sentence)
+                              and m.from_sentence <= s.id <= m.to_sentence), None)
+            start_t = max(0.5, (sec_start + 1.0) if sec_start is not None else 0.5, s.t0 - 8.0)
+            if s.t0 - start_t < 2.0:
+                notes.append(f"swells: no room before S{s.id} for a swell, dropped")
+                continue
+            edl.swells.append(Swell(id=f"w{len(edl.swells) + 1}", start=Anchor(src=round(start_t, 3)),
                                     end=Anchor(sentence=s.id, pad=-0.05), db=max(2.0, min(10.0, sw.db)), reason=sw.reason))
         for z in dec.zooms:
             if z.word_from not in wids or z.word_to not in wids or z.word_to < z.word_from:

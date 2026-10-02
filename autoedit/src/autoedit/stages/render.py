@@ -79,11 +79,13 @@ def _music_cues(edl: EDL, tr: Transcript | None, tm, profile: Profile, lib: Musi
 
 
 def run(project: Project, settings: Settings, profile: Profile, log: StageLog | None = None, *,
-        preview: bool = False, edl_path: Path | None = None, out_dir: Path | None = None) -> dict[str, Any]:
+        preview: bool = False, edl_path: Path | None = None, out_dir: Path | None = None,
+        vertical: bool = False, context_label: str | None = None) -> dict[str, Any]:
     stage = "render"
     log = log or project.log(stage)
     edl_path = edl_path or project.edl_json
-    if not preview:
+    standalone = not preview and not vertical
+    if standalone:
         project.begin(stage, file_hash(edl_path))
     try:
         edl = EDL.load(edl_path)
@@ -100,27 +102,35 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         notes: list[str] = []
 
         # ---- picture ----
-        compiled = compile_pieces(edl, tr, info, track, profile, log)
+        compiled = compile_pieces(edl, tr, info, track, profile, log, allow_punch=not vertical)
         notes += compiled.notes
+        crop_report: list[dict[str, Any]] = []
         if preview:
             pinfo = probe(project.proxy)
             out_size = (pinfo.width, pinfo.height)
             src = project.proxy
             crf, preset = 28, rc.preview_preset
+        elif vertical:
+            from ..render.vertical import crop_paths
+            out_size = (1080, 1920)
+            src = project.ingest_source
+            crf, preset = rc.crf, rc.preset
+            crop_report = crop_paths(compiled.pieces, track, info, out_size)
         else:
             out_size = (info.width, info.height)
             src = project.ingest_source
             crf, preset = rc.crf, rc.preset
         log.info("compiled", pieces=len(compiled.pieces), out_duration=round(compiled.timing.out_duration, 2))
         render_timeline(compiled, src, work, info, profile, font, workers=rc.workers, crf=crf, preset=preset, log=log,
-                        preview_size=out_size if preview else None, source_size=(info.width, info.height) if preview else None)
+                        preview_size=out_size if (preview or vertical) else None,
+                        source_size=(info.width, info.height) if preview else None)
         tm = compiled.timing
 
         # ---- resolve everything to output time ----
         resolved: dict[str, Any] = {"out_duration": tm.out_duration, "fps": info.fps_str, "size": list(out_size),
                                     "captions": [], "cards": [], "beats": [], "overlays": [], "music": [], "dropouts": [],
                                     "fadeouts": [], "swells": [], "sfx": [], "vo": [], "chapters": [], "zooms": [],
-                                    "punches": [], "hook": None}
+                                    "punches": [], "hook": None, "vertical": vertical, "crop_paths": crop_report}
         for p in compiled.pieces:
             if p.zoom:
                 resolved["zooms"].append({"id": p.zoom, "out_in": p.out_in, "out_out": p.out_in + p.dur, "crop": p.crop})
@@ -145,7 +155,7 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         slib = SfxLibrary.load(profile.resolve_path(profile.audio.sfx_dir), ph_dir)
         music_cues, pickups, music_placeholder = _music_cues(edl, tr, tm, profile, mlib, notes, resolved)
         spec = MixSpec(duration=tm.out_duration, music=music_cues, lufs=profile.audio.lufs,
-                       true_peak=profile.audio.true_peak, duck_ratio=profile.audio.duck_ratio)
+                       true_peak=profile.audio.true_peak, duck_ratio=profile.audio.duck_ratio, loop_end=vertical)
         for d in edl.dropouts:
             a, b = resolve_range(d.start, d.end, None, tr, edl, tm, 2.0)
             spec.dropouts.append((a.out, b.out))
@@ -190,10 +200,17 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
                 if m.get("pickup_out") is not None:
                     label(m["pickup_out"], m["pickup_out"] + 2.0, f"PICKUP {m['id']}", 3)
 
+        if vertical:
+            from ..render.vertical import word_captions
+            wdoc, wplace = word_captions(tr, tm, track, info, profile, font, out_size, crop_report, context_label)  # type: ignore[arg-type]
+            extra_doc = wdoc
+            resolved["word_captions"] = wplace
+
         # ---- graphics ----
         g = render_graphics(edl, tr, tm, compiled.pieces, track, info, profile, font, out_size, work,
                             project.root / "assets", hold_events, crf=crf, preset=preset,
-                            name="graphics_preview" if preview else "graphics", extra_doc=extra_doc, log=log)
+                            name="graphics_preview" if preview else "graphics", extra_doc=extra_doc, log=log,
+                            vertical=vertical)
         notes += g.notes
         resolved["captions"] = [p.__dict__ for p in g.placements]
         for ov in edl.overlays:
@@ -294,6 +311,14 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         n_mont = len([s for s in edl.segments if s.kind == "montage"])
         edl.mark("montage_compression", "executed" if n_mont else "not_executed", f"{n_mont} montage segments" if n_mont else "no montage ranges in the EDL", stage, n_mont)
 
+        if vertical:
+            faces_ok_v = any(r.get("mode") == "face-tracked" for r in crop_report)
+            edl.mark("shorts_face_tracked", "executed" if faces_ok_v else "degraded",
+                     "crop follows the face track per piece" if faces_ok_v else "no face: blurred letterbox", stage)
+            n_words = len(resolved.get("word_captions", []))
+            edl.mark("shorts_word_captions", "executed" if n_words else "not_executed", f"{n_words} caption lines + context label", stage, n_words)
+            edl.mark("shorts_loop_ending", "executed", "no fade to silence; music runs to the last frame", stage)
+            edl.mark("punch_ins", "not_executed", "not used on Shorts (vertical crop follows the face instead)", stage)
         report = {"preview": preview, "final": str(final), "out_duration": tm.out_duration, "pieces": len(compiled.pieces),
                   "measured_lufs_pre_gain": mr.measured_lufs, "gain_db": mr.gain_db, "stems": {k: str(v) for k, v in mr.stems.items()},
                   "notes": notes, "voice_clean": spec.voice_clean, "music_placeholder": music_placeholder,
@@ -301,12 +326,12 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
         (work / "resolved.json").write_text(json.dumps(resolved, indent=1, default=str))
         (work / "render_report.json").write_text(json.dumps(report, indent=1))
         edl.save(work / "edl.rendered.json")
-        if not preview:
+        if standalone:
             project.finish(stage, out_duration=tm.out_duration, pieces=len(compiled.pieces), final=str(final))
         log.done(final=str(final), duration=round(tm.out_duration, 2))
         return report
     except Exception as e:
-        if not preview:
+        if standalone:
             project.fail(stage, repr(e))
         log.error("failed", error=repr(e))
         raise

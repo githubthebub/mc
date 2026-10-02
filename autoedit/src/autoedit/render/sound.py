@@ -53,6 +53,7 @@ class MixSpec:
     true_peak: float = -1.5
     duck_ratio: float = 8.0
     fade_in_first: float = 2.0
+    loop_end: bool = False          # Shorts: the last track runs to the final frame, no fade to silence
 
 
 @dataclass
@@ -96,7 +97,7 @@ def _graph(spec: MixSpec, with_stems: bool) -> tuple[list[str], list[str], str, 
             st, en = m.start, m.end
             L = max(0.1, en - st)
             fin = 0.5 if st > 0 else spec.fade_in_first
-            fout = 0.5 if en < D - 0.05 else 2.0
+            fout = 0.5 if en < D - 0.05 else (0.03 if spec.loop_end else 2.0)
             lufs = m.lufs if m.lufs is not None else file_lufs(m.file)
             db = (spec.lufs + m.rel_db) - lufs   # absolute gain that lands it relative to the voice
             auto = []

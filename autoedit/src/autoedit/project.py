@@ -14,9 +14,9 @@ import yaml
 
 from .log import StageLog
 
-STAGES = ("ingest", "transcribe", "analyze", "plan", "render", "package", "verify")
+STAGES = ("ingest", "transcribe", "analyze", "plan", "render", "shorts", "package", "verify")
 STAGE_DIRS = {"ingest": "01_ingest", "transcribe": "02_transcribe", "analyze": "03_analyze", "plan": "04_plan",
-              "render": "05_render", "verify": "06_verify", "package": "07_package"}
+              "render": "05_render", "shorts": "05_render/shorts", "verify": "06_verify", "package": "07_package"}
 
 
 def slugify(text: str) -> str:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -86,8 +87,18 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
         raw.unlink(missing_ok=True)
         return str(out.relative_to(out_dir))
 
+    src_info = None
+    if vertical:
+        from ..render.vertical import face_in_vertical_output
+        src_info = probe(work.parents[2] / "01_ingest" / "source.mp4") if (work.parents[2] / "01_ingest" / "source.mp4").exists() else None
+
+    def face_at(t: float) -> Rect | None:
+        if vertical and src_info is not None:
+            return face_in_vertical_output(track, tm, t, resolved.get("crop_paths", []), src_info, (W, H))
+        return _face_out(track, tm, t, scale)
+
     def face_boxes(t: float) -> list[tuple[tuple[int, int, int, int], str, str]]:
-        f = _face_out(track, tm, t, scale)
+        f = face_at(t)
         return [(f.as_int(), "face", "#00FF88")] if f else []
 
     zone = safe_zone(W, H, vertical)
@@ -133,7 +144,9 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
         ducked = rms_db_windows(stem, win=win) if raw_stem.exists() else None
 
         def rms(a: float, b: float) -> list[float]:
-            i0, i1 = max(0, int(a / win)), max(int(a / win) + 1, int(b / win))
+            # only windows that lie entirely inside [a, b]
+            i0 = max(0, int(math.ceil(a / win - 1e-6)))
+            i1 = max(i0 + 1, int(math.floor(b / win + 1e-6)))
             return [float(x) for x in m[i0:i1]]
 
         det: dict[str, Any] = {"dropouts": [], "fadeouts": [], "swells": [], "pickups": []}
@@ -187,7 +200,7 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
         checks.append(_check("music_automation", "not_executed", "no music sections rendered"))
 
     # ---- 4 captions and cards: safe zone and face overlap (geometry + pixels) ----
-    caps = resolved.get("captions", [])
+    caps = list(resolved.get("captions", [])) + list(resolved.get("word_captions", []))
     bad = []
     frames = []
     ass_file = next((work / n for n in ("graphics.ass", "graphics_preview.ass") if (work / n).exists()), None)
@@ -199,7 +212,7 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
     for i, c in enumerate(caps):
         t = (c["out_in"] + c["out_out"]) / 2
         box = Rect(*c["box"])
-        face = _face_out(track, tm, t, scale)
+        face = face_at(t)
         overlap_px = 0
         if face and ass_file is not None:
             # exact: render the subtitles alone on black at this time and count ink inside the face box
@@ -218,14 +231,24 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
                          f"{len(caps)} text placements, {len(bad)} outside the safe zone or on the face",
                          bad, "all inside safe zone, none overlapping the face box", frames))
 
-    # ---- 5 faces never cropped by zooms / punches ----
+    # ---- 5 faces never cropped by zooms / punches (long-form) or by the crop path (Shorts) ----
     crops = [("zoom", z) for z in resolved.get("zooms", [])] + [("punch", p) for p in resolved.get("punches", [])]
     cropped = []
     frames = []
+    if vertical:
+        crops = []
+        for r in resolved.get("crop_paths", []):
+            if r.get("mode") != "face-tracked":
+                continue
+            for (t_out, x, y) in r["keys"]:
+                crops.append(("path", {"id": r["piece"], "out_in": t_out, "crop": [x, y, r["w"], r["h"]]}))
+        for k, (kind, z) in enumerate(crops):
+            if k % 6 == 0 and len(frames) < 6:
+                frames.append(grab(z["out_in"] + 0.05, f"crop_{len(frames)}", face_boxes(z["out_in"] + 0.05), f"crop path @ {z['out_in']:.2f}s"))
     for kind, z in crops:
         if not z.get("crop") or not track:
             continue
-        t_out = z["out_in"] + 0.2
+        t_out = z["out_in"] + (0.0 if kind == "path" else 0.2)
         ts = tm.to_src(t_out)
         fb = track.box_at(ts) if ts is not None else None
         if fb is None:
@@ -251,11 +274,22 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
                        [round(c["out_in"], 2) for c in caps] + [round(c, 2) for c in changes] +
                        [round(s.out_in, 2) for s in tm.spans[1:]]))
     early = [m for m in marks if 0 < m <= 3.0]
-    ok_hook = fw is not None and fw <= 3.0
+    hook_limit = 1.0 if vertical else 3.0
+    ok_hook = fw is not None and fw <= hook_limit
     frames = [grab(t, f"hook_{int(t * 10)}", face_boxes(t), f"hook {t:.1f}s") for t in (0.5, 1.5, 2.5)]
     checks.append(_check("hook", "pass" if ok_hook else "fail",
                          f"first word at {fw if fw is None else round(fw, 2)}s; {len(early)} visual changes in the first 3 s",
-                         {"first_word_out": fw, "visual_changes_first_3s": len(early)}, "speech within 3 s", frames))
+                         {"first_word_out": fw, "visual_changes_first_3s": len(early)}, f"speech within {hook_limit} s", frames))
+    if vertical:
+        # loop-friendly ending: no fade to silence in the last half second
+        tail = rms_db_windows(final, win=0.25)
+        last = float(np.max(tail[-2:])) if len(tail) >= 2 else -120.0
+        mstem = work / "stems" / "music.wav"
+        mtail = float(np.max(rms_db_windows(mstem, win=0.25)[-2:])) if mstem.exists() else None
+        ok_loop = last > -45.0 and (mtail is None or mtail > -45.0)
+        checks.append(_check("loop_ending", "pass" if ok_loop else "fail",
+                             f"last 0.5 s: mix {last:.1f} dBFS, music {mtail if mtail is None else round(mtail, 1)} dBFS",
+                             {"mix_tail_db": round(last, 1), "music_tail_db": mtail}, "no fade to silence (> -45 dBFS)"))
 
     # ---- 7 pacing vs benchmarks ----
     D = tm.out_duration
@@ -268,7 +302,7 @@ def verify_output(final: Path, work: Path, out_dir: Path, edl: EDL, profile: Pro
     longest = float(np.max(shots)) if len(shots) else D
     pacing = {"visual_changes_per_min": round(per_min, 1), "first_60s_per_min": round(pm60, 1),
               "avg_shot_s": round(avg_shot, 1), "longest_shot_s": round(longest, 1), "scene_cuts_detected": len(changes)}
-    ok_p = per_min >= float(bench["changes_per_min"]) and pm60 >= float(bench["changes_per_min_first60"]) and avg_shot <= float(bench["avg_shot_max_s"])
+    ok_p = vertical or (per_min >= float(bench["changes_per_min"]) and pm60 >= float(bench["changes_per_min_first60"]) and avg_shot <= float(bench["avg_shot_max_s"]))
     checks.append(_check("pacing", "pass" if ok_p else "warn", f"{pacing['visual_changes_per_min']}/min overall, "
                          f"{pacing['first_60s_per_min']}/min first 60 s, avg shot {pacing['avg_shot_s']} s", pacing,
                          {k: bench[k] for k in ("changes_per_min", "changes_per_min_first60", "avg_shot_max_s")}))

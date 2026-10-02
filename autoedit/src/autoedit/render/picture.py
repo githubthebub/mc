@@ -47,6 +47,8 @@ class Piece:
     file: str | None = None
     zoom: str | None = None
     punch: bool = False
+    crop_expr: tuple[str, str, int, int] | None = None     # vertical: x expr, y expr, w, h (face-tracked path)
+    vertical_blur: bool = False                             # vertical: blurred-letterbox fallback (no face)
 
     @property
     def dur(self) -> float:
@@ -77,7 +79,7 @@ def montage_chunks(seg: Segment) -> list[tuple[float, float]]:
 
 
 def compile_pieces(edl: EDL, tr: Transcript | None, info: MediaInfo, track: FaceTrack | None,
-                   profile: Profile, log: StageLog | None = None) -> Compiled:
+                   profile: Profile, log: StageLog | None = None, allow_punch: bool = True) -> Compiled:
     fps = info.fps
     W, H = info.width, info.height
     tm = TimingMap(fps)
@@ -110,7 +112,7 @@ def compile_pieces(edl: EDL, tr: Transcript | None, info: MediaInfo, track: Face
                 holds.append((t, vo.hold, "vo", vo.id, None))
 
     punch_params = profile.dead_air_params()
-    punch_scale = float(punch_params.get("punch", 1.0))
+    punch_scale = float(punch_params.get("punch", 1.0)) if allow_punch else 1.0
     toggle = 0
     for seg in edl.segments:
         for card in cards_by_seg.get(seg.id, []):
@@ -234,13 +236,21 @@ def render_piece(p: Piece, src: Path, out_dir: Path, info: MediaInfo, profile: P
     vf = [f"fps={fps}"]
     if p.rate != 1.0:
         vf.insert(0, f"setpts=PTS/{p.rate}")
-    if p.crop:
+    if p.crop_expr:
+        xe, ye, w, h = p.crop_expr
+        vf.append(f"crop={w}:{h}:x='{xe}':y='{ye}'")
+    elif p.crop:
         x, y, w, h = p.crop
         if scale_from:
             sx, sy = W / scale_from[0], H / scale_from[1]
             x, y, w, h = int(x * sx) // 2 * 2, int(y * sy) // 2 * 2, int(w * sx) // 2 * 2, int(h * sy) // 2 * 2
         vf.append(f"crop={w}:{h}:{x}:{y}")
-    vf.append(f"scale={W}:{H}:flags=bicubic,setsar=1")
+    if p.vertical_blur:
+        # no face: the whole frame scaled to width over a blurred, cover-scaled copy
+        vf.append(f"split[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=20[bg];"
+                  f"[b]scale={W}:-2[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2")
+    else:
+        vf.append(f"scale={W}:{H}:flags=bicubic,setsar=1")
     vf.append(f"tpad=stop_mode=clone:stop_duration={p.hold + 1.0:.3f}")
     af = ["aresample=48000"]
     if p.kind == "montage":
@@ -251,6 +261,12 @@ def render_piece(p: Piece, src: Path, out_dir: Path, info: MediaInfo, profile: P
     af.append(f"atrim=0:{total_dur:.6f}")
     af.append("afade=t=in:d=0.01")
     af.append(f"afade=t=out:st={max(0.0, total_dur - 0.01):.6f}:d=0.01")
+    if p.vertical_blur:
+        graph = "[0:v]" + ",".join(vf).replace(",split[a][b];", "split[a][b];").replace("overlay=(W-w)/2:(H-h)/2,", "overlay=(W-w)/2:(H-h)/2,") + "[v]"
+        run_ffmpeg(["-ss", f"{p.src_in:.6f}", "-t", f"{dur + 0.5:.6f}", "-i", str(src),
+                    "-filter_complex", graph, "-map", "[v]", "-map", "0:a", "-frames:v", str(total_frames),
+                    "-af", ",".join(af), *video_encode_args(crf, preset), *pcm_audio_args(), "-threads", str(threads), str(out)])
+        return out
     run_ffmpeg(["-ss", f"{p.src_in:.6f}", "-t", f"{dur + 0.5:.6f}", "-i", str(src),
                 "-vf", ",".join(vf), "-frames:v", str(total_frames), "-af", ",".join(af),
                 *video_encode_args(crf, preset), *pcm_audio_args(), "-threads", str(threads), str(out)])

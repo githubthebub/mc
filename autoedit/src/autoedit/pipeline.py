@@ -42,6 +42,9 @@ def run_stage(project: Project, stage: str, settings: Settings, *, force: bool =
                               "`autoedit approve <project>` (or use --yolo)")
         from .stages import render
         return render.run(project, settings, prof, log)
+    if stage == "shorts":
+        from .stages import shorts
+        return shorts.run(project, settings, prof, log, llm=llm)
     if stage == "verify":
         from .stages import verify
         return verify.run(project, settings, prof, log)

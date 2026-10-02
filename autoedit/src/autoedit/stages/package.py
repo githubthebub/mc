@@ -166,6 +166,18 @@ def run(project: Project, settings: Settings, profile: Profile, log: StageLog | 
                              "metrics": metrics, **placement}
         for f in out.glob("thumb_cand_*.png"):
             f.unlink()
+        # shorts
+        idx = work / "shorts" / "index.json"
+        meta["shorts"] = []
+        if idx.exists():
+            sdir = out / "shorts"
+            sdir.mkdir(exist_ok=True)
+            for sh in json.loads(idx.read_text()).get("shorts", []):
+                src_f = Path(sh["file"])
+                if src_f.exists():
+                    dst_s = sdir / f"{sh['id']}_{slugify(sh.get('title') or sh['id'])}.mp4"
+                    shutil.copy2(src_f, dst_s)
+                    meta["shorts"].append({**sh, "file": str(dst_s)})
         (out / "metadata.json").write_text(json.dumps(meta, indent=1))
         (out / "description.txt").write_text(desc + "\n")
         edl.mark("thumbnail_spotlight", "degraded" if placement["overlaps_face"] else "executed",
